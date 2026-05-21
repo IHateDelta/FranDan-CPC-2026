@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Globalization;
-namespace FranDanBackend.Models
+namespace FranDanBackend
 {
     public static class VerificationCodeGenerator
     {

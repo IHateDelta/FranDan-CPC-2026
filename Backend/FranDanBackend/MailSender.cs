@@ -28,7 +28,7 @@ namespace FranDanBackend
     public static class MailSender
     {
         private static LoginInfo sendingMail = LoginInfo.getFromConfig("config.json");
-        public static void sendFriendRequest(User fromUser, User toUser)
+        public static void sendFriendRequest(UserRegisterDTO fromUser, UserRegisterDTO toUser)
         {
             MailMessage message = new MailMessage();
             message.From = sendingMail.getEmail();
@@ -54,7 +54,7 @@ namespace FranDanBackend
                 }
             }
         }
-        public static void sendPlanRequest(User fromUser, User toUser, Plan plan)
+        public static void sendPlanRequest(UserRegisterDTO fromUser, UserRegisterDTO toUser, Plan plan)
         {
             MailMessage message = new MailMessage();
             message.From = sendingMail.getEmail();
