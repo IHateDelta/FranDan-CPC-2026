@@ -1,6 +1,7 @@
 ﻿
 using FranDanBackend.DTO;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Globalization;
 using System.Numerics;
 
@@ -13,11 +14,12 @@ namespace FranDanBackend.Models {
         public string description { get; set; }
         public DateTime startTime { get; set; }
         public DateTime endTime { get; set; }
-        public User admininstrator { get; set; }
+        public User administrator { get; set; }
+        [NotMapped]
         public Dictionary<User, (bool,bool)> participants { get; set; }
         public Plan() { }
 
-        public Plan(string _title, string _description, string _startTime, string _endTime, User _admininstrator)
+        public Plan(string _title, string _description, string _startTime, string _endTime, User _administrator)
         {
             title = _title;
             description = _description;
@@ -27,9 +29,9 @@ namespace FranDanBackend.Models {
                 endTime = DateTime.Parse(_endTime, CultureInfo.GetCultureInfo("pl-PL"));
             }
             catch (Exception) { throw new Exception("Date-exception"); }
-            admininstrator = _admininstrator;
+            administrator = _administrator;
             participants = new Dictionary<User, (bool,bool)>();
-            addParticipant(admininstrator, true,true);
+            addParticipant(administrator, true,true);
         }
         public void addParticipant(User participant, bool accepted=false, bool admin = false)
         {
@@ -75,7 +77,7 @@ namespace FranDanBackend.Models {
             dto.description=description;
             dto.startTime = startTime.ToString("dd.MM.yyyy");
             dto.endTime = endTime.ToString("dd.MM.yyyy");
-            dto.admininstrator = admininstrator.toPlanMemberDTO(participants[admininstrator]);
+            dto.administrator = administrator.toPlanMemberDTO(participants[administrator]);
             dto.participants = new List<PlanMemberDTO>();
             foreach (User participant in participants.Keys)
             {

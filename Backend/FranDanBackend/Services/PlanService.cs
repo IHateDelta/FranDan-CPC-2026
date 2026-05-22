@@ -1,4 +1,4 @@
-﻿using F1ProjKredek;
+﻿using FranDanBackend;
 using FranDanBackend.DTO;
 using FranDanBackend.Models;
 using Microsoft.EntityFrameworkCore;
@@ -44,7 +44,7 @@ namespace FranDanBackend.Services
             Plan plan = context.Plans.Find(dto.planId);
             if (plan == null) throw new Exception("No plan found!");
 
-            if (user != plan.admininstrator)
+            if (user != plan.administrator)
             {
                 if (!plan.participants.ContainsKey(user)) throw new Exception("Not included in this plan!");
                 if (!plan.participants[user].Item1) throw new Exception("Accept invitation before removing users!");
@@ -99,7 +99,7 @@ namespace FranDanBackend.Services
 
             if(plan.participants[changedUser].Item2==dto.admin) throw new Exception("This doesn't change the status!");
 
-            if (user == plan.admininstrator)
+            if (user == plan.administrator)
             {
                 if (user == changedUser) throw new Exception("Creator can't downgrade himself!");
             }
