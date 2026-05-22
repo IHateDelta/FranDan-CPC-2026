@@ -1,0 +1,11 @@
+﻿
+namespace FranDanBackend.DTO{
+    public class UserProtectedDTO
+    {
+        public int id {  get; set; }
+        public string username { get; set; }
+        public string email { get; set; }
+        public string birthday { get; set; }
+
+    }
+}
