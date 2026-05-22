@@ -2,6 +2,7 @@
 using FranDanBackend.DTO;
 using Microsoft.IdentityModel.SecurityTokenService;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Net.Mail;
 using System.Numerics;
 namespace FranDanBackend.Models{
@@ -18,7 +19,9 @@ namespace FranDanBackend.Models{
         public HashSet<User> friends {  get; set; }
         public HashSet<User> friendRequests { get; set; }
         public HashSet<User> blackList { get; set; }
+        [NotMapped]
         public HashSet<Plan> plans { get; set; }
+        [NotMapped]
         public HashSet<Plan> planRequests { get; set; }
         public User() { }
 

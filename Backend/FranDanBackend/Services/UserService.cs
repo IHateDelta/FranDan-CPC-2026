@@ -1,4 +1,4 @@
-﻿using F1ProjKredek;
+﻿using FranDanBackend;
 using FranDanBackend.DTO;
 using FranDanBackend.Models;
 using Microsoft.EntityFrameworkCore;

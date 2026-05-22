@@ -7,7 +7,7 @@ namespace FranDanBackend.DTO{
         public string description { get; set; }
         public string startTime { get; set; }
         public string endTime {  get; set; }
-        public PlanMemberDTO admininstrator { get; set; }
+        public PlanMemberDTO administrator { get; set; }
         public List<PlanMemberDTO> participants { get; set; }
     }
 }
