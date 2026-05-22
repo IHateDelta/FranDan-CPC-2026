@@ -1,4 +1,5 @@
 ﻿
+using FranDanBackend.DTO;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Numerics;
@@ -6,6 +7,7 @@ using System.Numerics;
 namespace FranDanBackend.Models {
     public class Plan
     {
+        [Key]
         public int id { get; set; }
         public string title { get; set; }
         public string description { get; set; }
@@ -55,6 +57,31 @@ namespace FranDanBackend.Models {
         public void reject(User participant)
         {
             removeParticipant(participant);
+        }
+        public PlanHeaderDTO toPlanHeaderDTO()
+        {
+            PlanHeaderDTO dto= new PlanHeaderDTO();
+            dto.id = id;
+            dto.title = title;
+            dto.startTime = startTime.ToString("dd.MM.yyyy");
+            dto.endTime = endTime.ToString("dd.MM.yyyy");
+            return dto;
+        }
+        public PlanFullDTO toPlanFullDTO()
+        {
+            PlanFullDTO dto= new PlanFullDTO();
+            dto.id = id;
+            dto.title = title;
+            dto.description=description;
+            dto.startTime = startTime.ToString("dd.MM.yyyy");
+            dto.endTime = endTime.ToString("dd.MM.yyyy");
+            dto.admininstrator = admininstrator.toPlanMemberDTO(participants[admininstrator]);
+            dto.participants = new List<PlanMemberDTO>();
+            foreach (User participant in participants.Keys)
+            {
+                dto.participants.Add(participant.toPlanMemberDTO(participants[participant]));
+            }
+            return dto;
         }
     }
 }

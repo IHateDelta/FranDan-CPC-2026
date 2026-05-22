@@ -1,7 +1,10 @@
-﻿namespace FranDanBackend.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace FranDanBackend.Models
 {
     public class Verifier
     {
+        [Key]
         public int id { get; set; }
         public bool verified { get; set; }
         public string code { get; set; }

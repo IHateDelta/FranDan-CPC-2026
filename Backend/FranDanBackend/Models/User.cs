@@ -1,10 +1,13 @@
 ﻿
+using FranDanBackend.DTO;
+using Microsoft.IdentityModel.SecurityTokenService;
 using System.ComponentModel.DataAnnotations;
-using System.Numerics;
 using System.Net.Mail;
+using System.Numerics;
 namespace FranDanBackend.Models{
     public class User
     {
+        [Key]
         public int id { get; set; }
         public string username { get; set; }
         public MailAddress email { get; set; }
@@ -65,6 +68,55 @@ namespace FranDanBackend.Models{
             if (!friends.Contains(user)) throw new Exception("Not a friend.");
             friends.Remove(user);
             blackList.Add(user);
+        }
+        public RequestorDTO toRequestorDTO()
+        {
+            RequestorDTO dto = new RequestorDTO();
+            dto.id = id;
+            dto.username = username;
+            dto.email = email.Address;
+            return dto;
+        }
+        public UserProtectedDTO toProtectedDTO()
+        {
+            UserProtectedDTO dto = new UserProtectedDTO();
+            dto.id = id;
+            dto.username = username;
+            dto.email = email.Address;
+            dto.birthday = birthday.ToString("dd.MM.yyyy");
+            return dto;
+        }
+        public PlanMemberDTO toPlanMemberDTO((bool,bool) status)
+        {
+            PlanMemberDTO dto = new PlanMemberDTO();
+            dto.username = username;
+            dto.accepted = status.Item1;
+            dto.admin = status.Item2;
+            return dto;
+        }
+        public UserFullDTO toUserFullDTO()
+        {
+            UserFullDTO dto=new UserFullDTO();
+            dto.id = id;
+            dto.username = username;
+            dto.email = email.Address;
+            dto.birthday = birthday.ToString("dd.MM.yyyy");
+            dto.friends = new List<UserProtectedDTO>();
+            foreach (User friend in friends)
+            {
+                dto.friends.Add(friend.toProtectedDTO());
+            }
+            dto.friendRequests = new List<UserProtectedDTO>();
+            foreach (User requestor in friendRequests)
+            {
+                dto.friends.Add(requestor.toProtectedDTO());
+            }
+            dto.plans = new List<PlanHeaderDTO>();
+            foreach (Plan plan in plans)
+            {
+                dto.plans.Add(plan.toPlanHeaderDTO());
+            }
+            return dto;
         }
         /*
         public Plan createPlan(string _title, string _description, string _startTime, string _endTime)

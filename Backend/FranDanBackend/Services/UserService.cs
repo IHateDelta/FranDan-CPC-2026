@@ -71,8 +71,15 @@ namespace FranDanBackend.Services
             if (removerUser == null) throw new Exception("No user found!");
             User removedUser = context.Users.Find(dto.id);
             if (removedUser == null) throw new Exception("No user found!");
-            removerUser.rejectFriend(removedUser);
+            removerUser.removeFriend(removedUser);
             context.SaveChanges();
+        }
+        public UserFullDTO fullInfo(int userId)
+        {
+            User user = context.Users.Find(userId);
+            if (user == null) throw new Exception("No user found!");
+            return user.toUserFullDTO();
+
         }
     }
 }
