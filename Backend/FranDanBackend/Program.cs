@@ -69,7 +69,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
         IssuerSigningKey = new SymmetricSecurityKey(secretKey)
     };
 });
-
+builder.Services.AddScoped<JWTGenerator>();
 //Do Serwisów
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PlanService>();

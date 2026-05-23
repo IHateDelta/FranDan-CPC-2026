@@ -56,7 +56,7 @@ namespace FranDanBackend.Controllers
         {
             if (request == null)
             {
-                return BadRequest("Dane rejestracji nie mogą być puste.");
+                return BadRequest("Can't be null.");
             }
             try
             {
@@ -66,6 +66,28 @@ namespace FranDanBackend.Controllers
             catch (Exception ex)
             {
                 return BadRequest($"Verification error: {ex.Message}");
+            }
+        }
+
+        [HttpPost("login")]
+        [AllowAnonymous]
+        [EndpointSummary("Logs in the user")]
+        [EndpointDescription("Returns JWT token upon successful authentication.")]
+        [ProducesResponseType(typeof(JwtDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
+        public ActionResult<JwtDTO> Login([FromBody] AuthLoginDTO request)
+        {
+            if (request == null)
+                return BadRequest("Can't be null!");
+
+            try
+            {
+                var response = userService.login(request);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Login error: {ex.Message}");
             }
         }
     }

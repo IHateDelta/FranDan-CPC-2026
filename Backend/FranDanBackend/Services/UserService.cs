@@ -63,7 +63,7 @@ namespace FranDanBackend.Services
             if (!foundUser.verifier.verify(dto.code)) throw new Exception("Wrong code!");
             context.SaveChanges();
         }
-        public string login(AuthLoginDTO dto)
+        public JwtDTO login(AuthLoginDTO dto)
         {
             User foundUser = context.Users
                 .Include(u => u.verifier)
@@ -80,7 +80,9 @@ namespace FranDanBackend.Services
             if (foundUser == null) throw new Exception("No user found!");
             if (!foundUser.verifier.verified) throw new Exception("Verify email before loging in!");
             if (!JWTGenerator.verifyHash(dto.password,foundUser.passwordHash)) throw new Exception("Wrong password!");
-            return generator.GenerateJWTToken(foundUser);
+            JwtDTO jwt=new JwtDTO();
+            jwt.jwtKey= generator.GenerateJWTToken(foundUser);
+            return jwt;
         }
         /*
         public void inviteFriend(int invitorId,UserFindDTO dto)
