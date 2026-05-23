@@ -17,6 +17,7 @@ namespace FranDanBackend
             {
                 json = r.ReadToEnd();
             }
+            Console.WriteLine(json);
             LoginInfo? loginInfo = JsonSerializer.Deserialize<LoginInfo>(json);
             return loginInfo;
         }
@@ -28,6 +29,35 @@ namespace FranDanBackend
     public static class MailSender
     {
         private static LoginInfo sendingMail = LoginInfo.getFromConfig("config.json");
+        public static void sendCode(User user)
+        {
+            //sendingMail = LoginInfo.getFromConfig("config.json");
+            MailMessage message = new MailMessage();
+            message.From = sendingMail.getEmail();
+            message.To.Add(user.email);
+            message.Subject = $"Verification code for FranDan.";
+            message.Body = $"Hello {user.username},\n" +
+                $"We are sending you verification code:\n" +
+                $"{user.verifier.code}\n" +
+                $"Paste it on our website to verify email." +
+                "This email was generated automatically. Don't answear.\n" +
+                "FranDan team\n";
+            message.IsBodyHtml = false;
+            using (var client = new SmtpClient("smtp.gmail.com", 587))
+            {
+                client.EnableSsl = true;
+                client.Credentials = new NetworkCredential(sendingMail.email, sendingMail.password);
+                try
+                {
+                    client.Send(message);
+                    Console.WriteLine("Yes!");
+                }
+                catch (Exception ex)
+                {
+                    throw new Exception("An error accured while sending email.");
+                }
+            }
+        }
         public static void sendFriendRequest(User fromUser, User toUser)
         {
             MailMessage message = new MailMessage();

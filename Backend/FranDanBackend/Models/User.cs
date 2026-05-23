@@ -5,7 +5,9 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Net.Mail;
 using System.Numerics;
-namespace FranDanBackend.Models{
+
+namespace FranDanBackend.Models
+{
     public class User
     {
         [Key]
@@ -14,31 +16,22 @@ namespace FranDanBackend.Models{
         public MailAddress email { get; set; }
         public string passwordHash { get; set; }
         public bool emailNotifications { get; set; }
+        public int verifierId { get; set; }
+        [ForeignKey(nameof(verifierId))]
         public Verifier verifier { get; set; }
-        public DateOnly birthday {  get; set; }
-        public HashSet<User> friends {  get; set; }
-        public HashSet<User> friendRequests { get; set; }
-        public HashSet<User> blackList { get; set; }
-        [NotMapped]
-        public HashSet<Plan> plans { get; set; }
-        [NotMapped]
-        public HashSet<Plan> planRequests { get; set; }
+        public DateOnly birthday { get; set; }
         public User() { }
 
         public User(string _username, string _email, bool _emailNotifications, string _passwordHash, string _birthday)
         {
             username = _username;
-            email = new MailAddress(_email,username);
+            email = new MailAddress(_email, _username);
             emailNotifications = _emailNotifications;
             passwordHash = _passwordHash;
+            try { birthday = DateOnly.Parse(_birthday); } catch (Exception) { throw new Exception("Date-exception"); }
             verifier = new Verifier();
-            try { birthday = DateOnly.Parse(_birthday); }catch (Exception) { throw new Exception("Date-exception"); }
-            friends = [];
-            friendRequests = new HashSet<User>();
-            blackList = new HashSet<User>();
-            plans = new HashSet<Plan>();
-            planRequests = new HashSet<Plan>();
         }
+        /*
         public void inviteFriend(User user)
         {
             if (friends.Contains(user)) throw new Exception("Already a friend.");
@@ -72,6 +65,7 @@ namespace FranDanBackend.Models{
             friends.Remove(user);
             blackList.Add(user);
         }
+        */
         public RequestorDTO toRequestorDTO()
         {
             RequestorDTO dto = new RequestorDTO();
@@ -97,6 +91,7 @@ namespace FranDanBackend.Models{
             dto.admin = status.Item2;
             return dto;
         }
+        /*
         public UserFullDTO toUserFullDTO()
         {
             UserFullDTO dto=new UserFullDTO();
@@ -121,6 +116,7 @@ namespace FranDanBackend.Models{
             }
             return dto;
         }
+        */
         /*
         public Plan createPlan(string _title, string _description, string _startTime, string _endTime)
         {

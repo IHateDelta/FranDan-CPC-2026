@@ -21,15 +21,16 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1.0"
     });
 
-    //Swagger + JWT
+    // POPRAWIONY SWAGGER: Czysty opis informujący użytkownika, by wkleił TYLKO token
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "Wklej swój token JWT:",
+        Description = "Wprowadź sam wygenerowany token JWT (bez słowa Bearer i bez żadnych opisów).",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
-        Scheme = "Bearer"
+        Scheme = "Bearer" // To automatycznie doda słowo "Bearer " w żądaniu!
     });
+
     options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
@@ -50,25 +51,24 @@ builder.Services.AddDbContext<MyContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")
         ?? "Data Source=FranDanDB.db"));
 
-builder.Services.AddScoped<MySeeder>();
+//builder.Services.AddScoped<MySeeder>();
 
 //Do JWT
+
 string secretKeyString = builder.Configuration["JwtSecretKey"]
     ?? throw new InvalidOperationException("JwtSecretKey is not configured.");
 var secretKey = Encoding.UTF8.GetBytes(secretKeyString);
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
+        ValidateIssuer = false,
+        ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = "FranDanBackend",
-        ValidAudience = "AppUsers",
         IssuerSigningKey = new SymmetricSecurityKey(secretKey)
     };
 });
-builder.Services.AddScoped<JWTGenerator>();
 
 //Do Serwisów
 builder.Services.AddScoped<UserService>();
@@ -80,13 +80,14 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 
-//Użycie Seedera
 using (var scope = app.Services.CreateScope())
 {
-    var seeder = scope.ServiceProvider.GetRequiredService<MySeeder>();
-    seeder.Seed();
-}
+    var context = scope.ServiceProvider.GetRequiredService<MyContext>();
 
+    // Ta metoda sprawdza, czy tabele istnieją. Jeśli plik jest pusty, 
+    // EF Core natychmiast wygeneruje w nim strukturę tabel (Users, Plans, itp.)
+    context.Database.EnsureCreated();
+}
 if (app.Environment.IsDevelopment())
 {
     //Użycie Swaggera
@@ -102,7 +103,7 @@ app.UseAuthorization(); //KONIECZNE DO JWT
 app.MapControllers();
 
 app.Run();
-
+/*
 namespace FranDanBackend
 {
     public class Program
@@ -111,3 +112,4 @@ namespace FranDanBackend
         }
     }
 }
+*/

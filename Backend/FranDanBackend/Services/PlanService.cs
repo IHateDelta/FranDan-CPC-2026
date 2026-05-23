@@ -13,6 +13,7 @@ namespace FranDanBackend.Services
         {
             context = _context;
         }
+
         public void addPlan(int userId, PlanAddDTO dto)
         {
             User user = context.Users.Find(userId);
@@ -20,6 +21,7 @@ namespace FranDanBackend.Services
             Plan newPlan = new Plan(dto.title,dto.description,dto.startTime,dto.endTime,user);
             context.SaveChanges();
         }
+        /*
         public void addParticipant(int userId, PlanParticipantDTO dto)
         {
             User user = context.Users.Find(userId);
@@ -110,5 +112,6 @@ namespace FranDanBackend.Services
             plan.setAdmin(changedUser, dto.admin);
             context.SaveChanges();
         }
+        */
     }
 }
