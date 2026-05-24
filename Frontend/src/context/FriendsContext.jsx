@@ -1,7 +1,7 @@
-import { createContext, useState, useEffect, useContext } from "react";
+import { createContext, useState, useContext, useEffect } from "react";
+import { api } from "../services/api";
 import { AuthContext } from "./AuthContext";
 import { ToastContext } from "./ToastContext";
-import { api } from "../services/api";
 
 export const FriendsContext = createContext();
 
@@ -9,106 +9,89 @@ export const FriendsProvider = ({ children }) => {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
 
+  const [allUsers] = useState([
+    { id: 101, name: "Dawid Podsiadło", role: "Student PWr", avatar: "D" },
+    { id: 102, name: "Jakub Grzegorczyk", role: "Student PWr", avatar: "J" },
+    { id: 103, name: "Jan Kowalski", role: "Student", avatar: "J" },
+    { id: 104, name: "Anna Nowak", role: "Student", avatar: "A" },
+    { id: 105, name: "Piotr Wiśniewski", role: "Absolwent", avatar: "P" },
+  ]);
+
   const [friendStatuses, setFriendStatuses] = useState({});
-  const [allUsers, setAllUsers] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchAllUsers = async () => {
-      const users = await api.friends.getAllUsers();
-      setAllUsers(users);
-    };
+    if (user) {
+      const newStatuses = {};
 
-    fetchAllUsers();
-  }, []);
-
-  useEffect(() => {
-    const fetchFriendStatuses = async () => {
-      if (user?.userName) {
-        try {
-          setLoading(true);
-          const [usersData, statusesData] = await Promise.all([
-            api.friends.getAllUsers(),
-            api.friends.getStatuses(user.userName),
-          ]);
-          setAllUsers(usersData);
-          setFriendStatuses(statusesData);
-        } catch (error) {
-          console.error("Błąd pobierania danych znajomych:", error);
-        } finally {
-          setLoading(false);
-        }
-      } else {
-        setFriendStatuses({});
-        setAllUsers([]);
-        setLoading(false);
+      if (user.friends) {
+        user.friends.forEach((f) => {
+          newStatuses[f.id] = "accepted";
+        });
       }
-    };
 
-    fetchFriendStatuses();
+      if (user.friendInvitations) {
+        user.friendInvitations.forEach((f) => {
+          newStatuses[f.id] = "pending";
+        });
+      }
+
+      setFriendStatuses(newStatuses);
+    } else {
+      setFriendStatuses({});
+    }
   }, [user]);
 
   const inviteFriend = async (friendId) => {
-    if (!user?.userName) return;
-
-    const updatedStatuses = { ...friendStatuses, [friendId]: "pending" };
-    setFriendStatuses(updatedStatuses);
-
+    setFriendStatuses((prev) => ({ ...prev, [friendId]: "pending" }));
     try {
-      await api.friends.saveStatuses(user.userName, updatedStatuses);
+      const response = await api.friends.invite(friendId);
+      if (!response.ok) throw new Error("Błąd serwera");
     } catch (error) {
-      console.error("Błąd podczas wysyłania zaproszenia:", error);
-      addToast("Nie udało się wysłać zaproszenia. Spróbuj ponownie.", "error");
-      setFriendStatuses(friendStatuses);
+      console.error("Błąd wysyłania zaproszenia:", error);
+      setFriendStatuses((prev) => {
+        const copy = { ...prev };
+        delete copy[friendId];
+        return copy;
+      });
+      addToast("Błąd serwera! Nie udało się wysłać zaproszenia.", "error");
     }
   };
 
   const acceptFriend = async (friendId) => {
-    if (!user?.userName) return;
-
-    const updatedStatuses = { ...friendStatuses, [friendId]: "accepted" };
-    setFriendStatuses(updatedStatuses);
+    setFriendStatuses((prev) => ({ ...prev, [friendId]: "accepted" }));
     try {
-      await api.friends.saveStatuses(user.userName, updatedStatuses);
+      const response = await api.friends.accept(friendId);
+      if (!response.ok) throw new Error("Błąd serwera");
     } catch (error) {
-      console.error("Błąd podczas akceptowania znajomego:", error);
-      addToast(
-        "Nie udało się zaakceptować znajomego. Spróbuj ponownie.",
-        "error",
-      );
-      setFriendStatuses(friendStatuses);
+      console.error("Błąd akceptacji:", error);
+      addToast("Błąd serwera. Spróbuj ponownie.", "error");
     }
   };
 
   const rejectFriend = async (friendId) => {
-    if (!user?.userName) return;
-
-    const updatedStatuses = { ...friendStatuses, [friendId]: "rejected" };
-    setFriendStatuses(updatedStatuses);
+    setFriendStatuses((prev) => ({ ...prev, [friendId]: "rejected" }));
     try {
-      await api.friends.saveStatuses(user.userName, updatedStatuses);
+      const response = await api.friends.reject(friendId);
+      if (!response.ok) throw new Error("Błąd serwera");
     } catch (error) {
-      console.error("Błąd podczas odrzucania zaproszenia:", error);
-      addToast(
-        "Nie udało się odrzucić zaproszenia. Spróbuj ponownie.",
-        "error",
-      );
-      setFriendStatuses(friendStatuses);
+      console.error("Błąd odrzucania:", error);
+      addToast("Błąd serwera. Spróbuj ponownie.", "error");
     }
   };
 
   const removeFriend = async (friendId) => {
-    if (!user?.userName) return;
-
-    const updatedStatuses = { ...friendStatuses };
-    delete updatedStatuses[friendId];
-    setFriendStatuses(updatedStatuses);
+    setFriendStatuses((prev) => {
+      const copy = { ...prev };
+      delete copy[friendId];
+      return copy;
+    });
     try {
-      await api.friends.saveStatuses(user.userName, updatedStatuses);
+      const response = await api.friends.delete(friendId);
+      if (!response.ok) throw new Error("Błąd serwera");
     } catch (error) {
-      console.error("Błąd podczas usuwania znajomego:", error);
-      addToast("Nie udało się usunąć znajomego. Spróbuj ponownie.", "error");
-      setFriendStatuses(friendStatuses);
+      console.error("Błąd usuwania:", error);
+      addToast("Błąd serwera. Spróbuj ponownie.", "error");
     }
   };
 
@@ -117,6 +100,7 @@ export const FriendsProvider = ({ children }) => {
       value={{
         allUsers,
         friendStatuses,
+        loading,
         inviteFriend,
         acceptFriend,
         rejectFriend,
