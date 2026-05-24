@@ -44,5 +44,25 @@ namespace FranDanBackend.Controllers
                 return BadRequest($"Plan creation error: {ex.Message}");
             }
         }
+        [HttpGet("full")]
+        [Authorize]
+        public IActionResult GetFull([FromBody] PlanIdDTO request)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                {
+                    return BadRequest("Wrong token. No user with this id.");
+                }
+                int loggedInUserId = int.Parse(userIdClaim.Value);
+                service.fullPlan(loggedInUserId, request);
+                return Ok("Plan created succesfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Plan creation error: {ex.Message}");
+            }
+        }
     }
 }

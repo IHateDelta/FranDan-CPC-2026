@@ -103,45 +103,5 @@ namespace FranDanBackend.Models
             dto.admin = admin;
             return dto;
         }
-        /*
-        public UserFullDTO toUserFullDTO()
-        {
-            UserFullDTO dto=new UserFullDTO();
-            dto.id = id;
-            dto.username = username;
-            dto.email = email.Address;
-            dto.birthday = birthday.ToString("dd.MM.yyyy");
-            dto.friends = new List<UserProtectedDTO>();
-            foreach (User friend in friends)
-            {
-                dto.friends.Add(friend.toProtectedDTO());
-            }
-            dto.friendRequests = new List<UserProtectedDTO>();
-            foreach (User requestor in friendRequests)
-            {
-                dto.friends.Add(requestor.toProtectedDTO());
-            }
-            dto.plans = new List<PlanHeaderDTO>();
-            foreach (Plan plan in plans)
-            {
-                dto.plans.Add(plan.toPlanHeaderDTO());
-            }
-            return dto;
-        }
-        */
-        /*
-        public Plan createPlan(string _title, string _description, string _startTime, string _endTime)
-        {
-            return new Plan(_title, _description, _startTime, _endTime,this);
-        }
-        public void acceptPlan(Plan plan)
-        {
-            plan.accept(this);
-        }
-        public void rejectPlan(Plan plan)
-        {
-            plan.reject(this);
-        }
-        */
     }
 }

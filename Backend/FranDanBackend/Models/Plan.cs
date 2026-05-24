@@ -39,7 +39,7 @@ namespace FranDanBackend.Models
             {
                 id = id,
                 title = title,
-                startTime = startTime.ToString("dd.MM.yyyy"),
+                startTime = startTime.ToString("yyyy-MM-dd HH.mm.ss"),
                 creator=creator,
                 admin=admin
             };

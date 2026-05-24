@@ -1,6 +1,7 @@
 ﻿using FranDanBackend;
 using FranDanBackend.DTO;
 using FranDanBackend.Models;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.IdentityModel.SecurityTokenService;
@@ -132,6 +133,28 @@ namespace FranDanBackend.Services
             participation.admin = dto.admin;
             context.SaveChanges();
         }
-        
+        public PlanFullDTO fullPlan(int userId, PlanIdDTO dto)
+        {
+            User user = context.getUserById(userId);
+            Plan plan = context.getPlanById(dto.id);
+            var participantsList = context.getAllPlanParticipants(plan);
+            List<PlanMemberDTO> members = new List<PlanMemberDTO>();
+            foreach (var (participant, accepted, creator, admin) in participantsList)
+            {
+                members.Add(user.toPlanMemberDTO(accepted,admin));
+            }
+            return new PlanFullDTO
+            {
+                id = plan.id,
+                title = plan.title,
+                category = plan.category,
+                description = plan.description,
+                startTime = plan.startTime.ToString("yyyy-MM-dd HH.mm.ss"),
+                creator = plan.creator.toPlanMemberDTO(true, true),
+                participants=members
+
+            };
+        }
+
     }
 }

@@ -24,6 +24,7 @@ namespace FranDanBackend.Services
             foreach (User friend in friendsList) {
                 friendsListDTO.Add(friend.toProtectedDTO());
             }
+            friendsListDTO = friendsListDTO.OrderBy(f => f.days_to_birthday).ToList();
 
             List<User> friendInvitationsList = context.getAllFriendInvitators(user);
             List<UserProtectedDTO> friendInvitationsListDTO = new List<UserProtectedDTO>();
@@ -31,6 +32,7 @@ namespace FranDanBackend.Services
             {
                 friendInvitationsListDTO.Add(friend.toProtectedDTO());
             }
+            friendInvitationsListDTO = friendInvitationsListDTO.OrderBy(f => f.days_to_birthday).ToList();
 
             var plansList = context.getAllPlans(user);
             List<PlanHeaderDTO> plansListDTO = new List<PlanHeaderDTO>();
