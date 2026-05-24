@@ -70,6 +70,7 @@ builder.Services.AddScoped<JWTGenerator>();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<FriendService>();
 builder.Services.AddScoped<PlanService>();
+builder.Services.AddScoped<UserService>();
 
 builder.Services.AddAuthorization();
 

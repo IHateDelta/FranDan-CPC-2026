@@ -68,7 +68,7 @@ namespace FranDanBackend.Services
             toRejectFriendship.blacklisted=true;
             context.SaveChanges();
         }
-        public void removeFriend(int removerId, UserIdDTO dto)
+        public void deleteFriend(int removerId, UserIdDTO dto)
         {
             User removerUser, removedUser;
             removerUser = context.getUserById(removerId);

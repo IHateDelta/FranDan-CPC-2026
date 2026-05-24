@@ -39,7 +39,7 @@ namespace FranDanBackend
             message.Body = $"Hello {user.username},\n" +
                 $"We are sending you verification code:\n" +
                 $"{user.verifier.code}\n" +
-                $"Paste it on our website to verify email." +
+                $"Paste it on our website to verify email.\n" +
                 "This email was generated automatically. Don't answear.\n" +
                 "FranDan team\n";
             message.IsBodyHtml = false;
@@ -64,10 +64,11 @@ namespace FranDanBackend
             message.From = sendingMail.getEmail();
             message.To.Add(toUser.email);
             message.Subject = $"You have new friend invitation from {fromUser.username}.";
-            message.Body = $"Hello {toUser}," +
+            message.Body = $"Hello {toUser},\n" +
                 $"{fromUser.username} send you a friend invitation.\n" +
                 "Log in to accept or reject it.\n"+
-                "This email was generated automatically. Don't answear.\n" +
+                "This email was generated automatically.\n" +
+                " Don't answear.\n" +
                 "FranDan team\n";
             message.IsBodyHtml = false;
             using (var client = new SmtpClient("smtp.gmail.com", 587))
@@ -90,13 +91,15 @@ namespace FranDanBackend
             message.From = sendingMail.getEmail();
             message.To.Add(toUser.email);
             message.Subject = $"You have recived an invitation to join plan {plan.title} from {fromUser.username}.";
-            message.Body = $"Hello {toUser}," +
+            message.Body = $"Hello {toUser.username},\n" +
                 $"{fromUser.username} send you an invitation to join a plan.\n" +
                 "Title:\n" +
                 $"{plan.title}\n" +
+                $"Category:\n" +
+                $"{plan.creator}\n" +
                 $"Description:\n" +
                 $"{plan.description}\n" +
-                $"The plan is sheduled from {plan.startTime.ToString("G")} to {plan.endTime.ToString("G")}.\n" +
+                $"The plan is sheduled on {plan.startTime.ToString("G")}.\n" +
                 "Log in to accept or reject it.\n" +
                 "This email was generated automatically. Don't answear.\n" +
                 "FranDan team\n";

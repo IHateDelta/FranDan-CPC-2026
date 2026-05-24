@@ -23,7 +23,7 @@ namespace FranDanBackend.Models
         public DateOnly birthday { get; set; }
         public User() { }
 
-        public User(string _username, string _email, bool _emailNotifications, string _passwordHash, string _occupation, string _birthday)
+        public User(string _username, string _email, bool _emailNotifications, string _occupation, string _passwordHash, string _birthday)
         {
             username = _username;
             email = new MailAddress(_email, _username);
@@ -79,12 +79,19 @@ namespace FranDanBackend.Models
         }
         public UserProtectedDTO toProtectedDTO()
         {
+            DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+            DateOnly birthdayThisYear = new DateOnly(today.Year,birthday.Month,birthday.Day);
+            DateOnly birthdayNextYear = new DateOnly(today.Year+1,birthday.Month,birthday.Day);
+            int days_to_birthday = birthdayThisYear.DayNumber-today.DayNumber > 0 ? 
+                birthdayThisYear.DayNumber - today.DayNumber : 
+                birthdayNextYear.DayNumber - today.DayNumber ;
             UserProtectedDTO dto = new UserProtectedDTO();
             dto.id = id;
             dto.username = username;
             dto.email = email.Address;
             dto.occupation = occupation;
             dto.birthday = birthday.ToString("dd.MM.yyyy");
+            dto.days_to_birthday = days_to_birthday;
             return dto;
         }
         public PlanMemberDTO toPlanMemberDTO(bool accepted,bool admin)

@@ -44,7 +44,7 @@ namespace FranDanBackend.Controllers
                 return BadRequest($"Inviting friend error: {ex.Message}");
             }
         }
-        [HttpPost("accept")]
+        [HttpPatch("accept")]
         [Authorize]
         public IActionResult accept([FromBody] UserIdDTO request)
         {
@@ -64,7 +64,7 @@ namespace FranDanBackend.Controllers
                 return BadRequest($"Accepting friend error: {ex.Message}");
             }
         }
-        [HttpPost("reject")]
+        [HttpPatch("reject")]
         [Authorize]
         public IActionResult reject([FromBody] UserIdDTO request)
         {
@@ -84,9 +84,9 @@ namespace FranDanBackend.Controllers
                 return BadRequest($"Rejecting friend error: {ex.Message}");
             }
         }
-        [HttpPost("remove")]
+        [HttpDelete("delete")]
         [Authorize]
-        public IActionResult remove([FromBody] UserIdDTO request)
+        public IActionResult delete([FromBody] UserIdDTO request)
         {
             try
             {
@@ -96,7 +96,7 @@ namespace FranDanBackend.Controllers
                     return BadRequest("Wrong token. No user with this id.");
                 }
                 int loggedInUserId = int.Parse(userIdClaim.Value);
-                service.removeFriend(loggedInUserId, request);
+                service.deleteFriend(loggedInUserId, request);
                 return Ok("Friend removed succesfully! This user is from now on black list.");
             }
             catch (Exception ex)

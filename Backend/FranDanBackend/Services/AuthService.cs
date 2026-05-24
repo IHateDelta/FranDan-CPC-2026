@@ -26,6 +26,7 @@ namespace FranDanBackend.Services
                 dto.username.Trim(),
                 dto.email.Trim().ToLower(),
                 dto.emailNotifications,
+                dto.occupation,
                 JWTGenerator.createHash(dto.password),
                 dto.birthday
                 );

@@ -20,7 +20,7 @@ namespace FranDanBackend.Services
         public void create(int userId, PlanCreateDTO dto)
         {
             User user = context.getUserById(userId);
-            Plan newPlan = new Plan(dto.title,dto.description,dto.startTime,dto.endTime,user);
+            Plan newPlan = new Plan(dto.title,dto.category,dto.description,dto.startTime,user);
             context.Plans.Add(newPlan);
             Participation creatorParticipation = new Participation(user, newPlan, true);
             creatorParticipation.accepted = true;
@@ -132,5 +132,6 @@ namespace FranDanBackend.Services
             participation.admin = dto.admin;
             context.SaveChanges();
         }
+        
     }
 }

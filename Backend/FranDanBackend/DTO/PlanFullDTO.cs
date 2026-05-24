@@ -4,9 +4,11 @@ namespace FranDanBackend.DTO{
     {
         public int id { get; set; }
         public string title { get; set; }
+        public string category { get; set; }
         public string description { get; set; }
         public string startTime { get; set; }
-        public string endTime {  get; set; }
+        public bool admin {  get; set; }
+        public bool creator { get; set; }
         public PlanMemberDTO administrator { get; set; }
         public List<PlanMemberDTO> participants { get; set; }
     }

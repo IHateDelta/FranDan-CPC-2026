@@ -3,6 +3,7 @@ using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System.Net.Mail;
+using System.Linq;
 
 namespace FranDanBackend
 {
@@ -121,6 +122,32 @@ namespace FranDanBackend
             if (potentialFriendShip == null) throw new Exception("No friendship found");
             else return potentialFriendShip;
         }
+        public List<User> getAllFriends(User user)
+        {
+            List<Friendship> usersFriendships = new List<Friendship>(Friendships
+                .Include(u => u.friend1)
+                .Include(u => u.friend2)
+                .Where(friendship => friendship.accepted && (friendship.friend1 == user || friendship.friend2 == user)));
+            List<User> friends=new List<User> ();
+            foreach (Friendship  friendship in usersFriendships)
+            {
+                friends.Add(user== friendship.friend2 ? friendship.friend1:friendship.friend2);
+            }
+            return friends;
+        }
+        public List<User> getAllFriendInvitators(User user)
+        {
+            List<Friendship> usersFriendshipsInvitations = new List<Friendship>(Friendships
+                .Include(u => u.friend1)
+                .Include(u => u.friend2)
+                .Where(friendship => !friendship.accepted && !friendship.blacklisted && friendship.friend2 == user));
+            List<User> friendInvitators = new List<User>();
+            foreach (Friendship friendshipInvitation in usersFriendshipsInvitations)
+            {
+                friendInvitators.Add(user == friendshipInvitation.friend2 ? friendshipInvitation.friend1 : friendshipInvitation.friend2);
+            }
+            return friendInvitators;
+        }
         public Plan getPlanById(int id)
         {
             Plan foundPlan = Plans.Find(id);
@@ -159,5 +186,48 @@ namespace FranDanBackend
                    else
                        return Participation.Role.PARTICIPANT;
         }
+        public List<(Plan,bool,bool)> getAllPlans(User user)
+        {
+            List<Participation> usersParticipations = new List<Participation>(Participations
+                .Include(p => p.plan)
+                    .ThenInclude(pl => pl.creator)
+                .Include(p => p.user)
+                .Where(participation => participation.accepted && participation.user==user));
+            List<(Plan, bool, bool)> usersPlans = new List<(Plan, bool, bool)>();
+            foreach (Participation participation in usersParticipations)
+            {
+                usersPlans.Add((participation.plan,participation.plan.creator==user,participation.admin));
+            }
+            return usersPlans;
+        }
+        public List<(Plan,bool)> getAllPlanInvitations(User user)
+        {
+            List<Participation> usersParticipations = new List<Participation>(Participations
+                .Include(p => p.plan)
+                    .ThenInclude(pl => pl.creator)
+                .Include(p => p.user)
+                .Where(participation => !participation.accepted && participation.user == user));
+            List<(Plan,bool)> usersPlans = new List<(Plan,bool)>();
+            foreach (Participation participation in usersParticipations)
+            {
+                usersPlans.Add((participation.plan,participation.admin));
+            }
+            return usersPlans;
+        }
+        public List<(User, bool,bool,bool)> getAllPlanParticipants(Plan plan)
+        {
+            List<Participation> planParticipations = new List<Participation>(Participations
+                .Include(p => p.plan)
+                    .ThenInclude(pl => pl.creator)
+                .Include(p => p.user)
+                .Where(participation => participation.plan==plan));
+            List<(User, bool,bool,bool)> usersPlans = new List<(User, bool,bool,bool)>();
+            foreach (Participation participation in planParticipations)
+            {
+                usersPlans.Add((participation.user,participation.accepted, plan.creator==participation.user, participation.admin));
+            }
+            return usersPlans;
+        }
     }
+
 }

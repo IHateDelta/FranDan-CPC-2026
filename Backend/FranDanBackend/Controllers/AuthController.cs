@@ -46,7 +46,7 @@ namespace FranDanBackend.Controllers
             }
         }
 
-        [HttpPost("verify")]
+        [HttpPatch("verify")]
         [AllowAnonymous]
         [EndpointSummary("Verify user's email code.")]
         [EndpointDescription("User has to paste verification code here.")]

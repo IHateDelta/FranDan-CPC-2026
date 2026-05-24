@@ -44,9 +44,9 @@ namespace FranDanBackend.Controllers
                 return BadRequest($"Participant addition error: {ex.Message}");
             }
         }
-        [HttpPost("remove")]
+        [HttpDelete("delete")]
         [Authorize]
-        public IActionResult remove([FromBody] PlanActionDTO request)
+        public IActionResult delete([FromBody] PlanActionDTO request)
         {
             try
             {
@@ -64,7 +64,7 @@ namespace FranDanBackend.Controllers
                 return BadRequest($"Participant removal error: {ex.Message}");
             }
         }
-        [HttpPost("accept")]
+        [HttpPatch("accept")]
         [Authorize]
         public IActionResult accept([FromBody] PlanIdDTO request)
         {
@@ -84,7 +84,7 @@ namespace FranDanBackend.Controllers
                 return BadRequest($"Plan invitation acteptation error: {ex.Message}");
             }
         }
-        [HttpPost("reject")]
+        [HttpPatch("reject")]
         [Authorize]
         public IActionResult rejec([FromBody] PlanIdDTO request)
         {
@@ -104,7 +104,7 @@ namespace FranDanBackend.Controllers
                 return BadRequest($"Plan invitation rejection error: {ex.Message}");
             }
         }
-        [HttpPost("set-admin")]
+        [HttpPatch("set-admin")]
         [Authorize]
         public IActionResult setAdmin([FromBody] PlanParticipantDTO request)
         {
