@@ -2,6 +2,8 @@
 using FranDanBackend.DTO;
 using FranDanBackend.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.IdentityModel.SecurityTokenService;
 using System.IO;
 
 namespace FranDanBackend.Services
@@ -16,102 +18,113 @@ namespace FranDanBackend.Services
 
         public void addPlan(int userId, PlanAddDTO dto)
         {
-            User user = context.Users.Find(userId);
-            if (user == null) throw new Exception("No user found!");
+            User user = context.getUserById(userId);
             Plan newPlan = new Plan(dto.title,dto.description,dto.startTime,dto.endTime,user);
             context.SaveChanges();
         }
-        /*
+        
         public void addParticipant(int userId, PlanParticipantDTO dto)
         {
-            User user = context.Users.Find(userId);
-            if (user == null) throw new Exception("No user found!");
-            User invitedUser = context.Users.Find(dto.userId);
-            if (invitedUser == null) throw new Exception("No user found!");
-            Plan plan = context.Plans.Find(dto.planId);
-            if (plan == null) throw new Exception("No plan found!");
-
-            if (!plan.participants.ContainsKey(user)) throw new Exception("Not included in this plan!");
-            if (!plan.participants[user].Item1) throw new Exception("Accept invitation before adding users!");
-            if (!plan.participants[user].Item2) throw new Exception("You need to be an admin to add users!");
-            plan.addParticipant(invitedUser, false, dto.admin);
+            User user = context.getUserById(userId);
+            User invitedUser = context.getUserById(dto.userId);
+            Plan plan = context.getPlanById(dto.planId);
+            switch(context.getParticipationRole(user, plan))
+            {
+                case Participation.Role.CREATOR: break;
+                case Participation.Role.ADMIN: if(dto.admin) throw new Exception("You have to be creator to set admin role."); break;
+                case Participation.Role.INVITED_ADMIN: throw new Exception("Accept invitation before inviting others.");
+                case Participation.Role.PARTICIPANT: throw new Exception("You have to be admin to add to the plan.");
+                case Participation.Role.INVITED: throw new Exception("First join the plan. You have to be admin to add to the plan.");
+                case Participation.Role.NONE: throw new Exception("You are not included in this plan.");
+            }
+            if (context.getParticipationRole(invitedUser, plan)!=Participation.Role.NONE) throw new Exception("Already a participant");
+            Participation participation = new Participation(invitedUser, plan, dto.admin);
+            context.Participations.Add(participation);
             context.SaveChanges();
         }
-        public void removeParticipant(int userId, PlanParticipantDTO dto)
+        public void removeParticipant(int userId, PlanActionDTO dto)
         {
-            User user = context.Users.Find(userId);
-            if (user == null) throw new Exception("No user found!");
-            User removedUser = context.Users.Find(dto.userId);
-            if (removedUser == null) throw new Exception("No user found!");
-            Plan plan = context.Plans.Find(dto.planId);
-            if (plan == null) throw new Exception("No plan found!");
-
-            if (user != plan.administrator)
+            User user = context.getUserById(userId);
+            User toRemoveUser = context.getUserById(dto.userId);
+            Plan plan = context.getPlanById(dto.planId);
+            switch (context.getParticipationRole(user, plan))
             {
-                if (!plan.participants.ContainsKey(user)) throw new Exception("Not included in this plan!");
-                if (!plan.participants[user].Item1) throw new Exception("Accept invitation before removing users!");
-                if (user != removedUser)
-                {
-                    if (!plan.participants[user].Item2) throw new Exception("You need to be an admin to remove users!");
-                    if (!plan.participants.ContainsKey(removedUser)) throw new Exception("Can't remove user! Isn't a participant.");
-                    if (plan.participants[removedUser].Item2) throw new Exception("You can't remove other admin!");
-                }
+                case Participation.Role.CREATOR:
+                    switch (context.getParticipationRole(toRemoveUser, plan))
+                    {
+                        case Participation.Role.CREATOR: throw new Exception("You can't quit plan as a creator.");
+                        case Participation.Role.ADMIN: break;
+                        case Participation.Role.INVITED_ADMIN: break;
+                        case Participation.Role.PARTICIPANT: break;
+                        case Participation.Role.INVITED: break;
+                        case Participation.Role.NONE: throw new Exception("Not a participant.");
+                    }
+                    break;
+                case Participation.Role.ADMIN:
+                    switch (context.getParticipationRole(toRemoveUser, plan))
+                    {
+                        case Participation.Role.CREATOR: throw new Exception("You have no authority to remove the creator.");
+                        case Participation.Role.ADMIN:
+                            if (user == toRemoveUser) break;
+                            else throw new Exception("You have no authority to remove another admin.");
+                        case Participation.Role.INVITED_ADMIN: throw new Exception("You have no authority to remove another admin.");
+                        case Participation.Role.PARTICIPANT: break;
+                        case Participation.Role.INVITED: break;
+                        case Participation.Role.NONE: throw new Exception("Not a participant.");
+                    }
+                    break;
+                case Participation.Role.INVITED_ADMIN: throw new Exception("Join the plan before removing participants.");
+                case Participation.Role.PARTICIPANT:
+                    if (user == toRemoveUser) break;
+                    else throw new Exception("You have to be admin to remove from the plan.");
+                case Participation.Role.INVITED: throw new Exception("Join the plan first. You have to be admin to remove from the plan.");
+                case Participation.Role.NONE: throw new Exception("You are not included in this plan.");
             }
-            else
-            {
-                if (!plan.participants.ContainsKey(removedUser)) throw new Exception("Can't remove user! Isn't a participant.");
-                if (user == removedUser) throw new Exception("Can't remove yourselve as a creator!");
-            }
-            plan.removeParticipant(removedUser);
+            Participation participation = context.getParticipation(toRemoveUser, plan);
+            context.Participations.Remove(participation);
             context.SaveChanges();
         }
         public void acceptInvitation(int userId, PlanIdDTO dto)
         {
-            User user = context.Users.Find(userId);
-            if (user == null) throw new Exception("No user found!");
-            Plan plan = context.Plans.Find(dto.id);
-            if (plan == null) throw new Exception("No plan found!");
-            if (!plan.participants.ContainsKey(user)) throw new Exception("Not included in this plan!");
-            if (plan.participants[user].Item1) throw new Exception("Already accepted!");
-            plan.accept(user);
+            User user = context.getUserById(userId);
+            Plan plan = context.getPlanById(dto.id);
+            Participation participation = context.getParticipation(user, plan);
+            if (!participation.accepted)
+            {
+                participation.accepted=true;
+            }
+            else
+            {
+                throw new Exception("Already in the plan");
+            }
             context.SaveChanges();
         }
         public void rejectInvitation(int userId, PlanIdDTO dto)
         {
-            User user = context.Users.Find(userId);
-            if (user == null) throw new Exception("No user found!");
-            Plan plan = context.Plans.Find(dto.id);
-            if (plan == null) throw new Exception("No plan found!");
-            if (!plan.participants.ContainsKey(user)) throw new Exception("Not included in this plan!");
-            if (plan.participants[user].Item1) throw new Exception("Already accepted!");
-            plan.reject(user);
+            User user = context.getUserById(userId);
+            Plan plan = context.getPlanById(dto.id);
+            Participation participation = context.getParticipation(user, plan);
+            if (participation.accepted)
+                throw new Exception("Already in the plan");
+            context.Participations.Remove(participation);
             context.SaveChanges();
         }
         public void setAdmin(int userId, PlanParticipantDTO dto)
         {
-            User user = context.Users.Find(userId);
-            if (user == null) throw new Exception("No user found!");
-            User changedUser = context.Users.Find(dto.userId);
-            if (changedUser == null) throw new Exception("No user found!");
-            Plan plan = context.Plans.Find(dto.planId);
-            if (plan == null) throw new Exception("No plan found!");
-
-            if (!plan.participants.ContainsKey(user)) throw new Exception("Not included in this plan!");
-            if (!plan.participants.ContainsKey(changedUser)) throw new Exception("This user not included in this plan!");
-
-            if(plan.participants[changedUser].Item2==dto.admin) throw new Exception("This doesn't change the status!");
-
-            if (user == plan.administrator)
+            User user = context.getUserById(userId);
+            User toChangeStateUser = context.getUserById(dto.userId);
+            Plan plan = context.getPlanById(dto.planId);
+            switch (context.getParticipationRole(user, plan))
             {
-                if (user == changedUser) throw new Exception("Creator can't downgrade himself!");
+                case Participation.Role.CREATOR: if(user == toChangeStateUser) throw new Exception("Can't change own creator state."); break;
+                case Participation.Role.ADMIN: if (user == toChangeStateUser) break; throw new Exception("No authority to set admin.");
+                case Participation.Role.NONE: throw new Exception("You are not included in this plan.");
+                default: throw new Exception("No authority to set admin.");
             }
-            else
-            {
-                if (user != changedUser) throw new Exception("Can't downgrade other admin!");
-            }
-            plan.setAdmin(changedUser, dto.admin);
+            Participation participation = context.getParticipation(toChangeStateUser, plan);
+            if(participation.admin == dto.admin) throw new Exception("Can't change to the same admin state");
+            participation.admin = dto.admin;
             context.SaveChanges();
         }
-        */
     }
 }

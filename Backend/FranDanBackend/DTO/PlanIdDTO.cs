@@ -2,7 +2,7 @@
 namespace FranDanBackend.DTO{
     public class PlanIdDTO
     {
-        public string id { get; set; }
+        public int id { get; set; }
 
     }
 }

@@ -8,6 +8,14 @@ using System.Numerics;
 namespace FranDanBackend.Models {
     public class Friendship
     {
+        public enum FriendshipState {
+            NONE,
+            FRIENDS,
+            INVITED1,
+            INVITED2,
+            BLACKLISTED1,
+            BLACKLISTED2
+        }
         [Key]
         public int id { get; set; }
         public int friend1Id { get; set; }
@@ -27,6 +35,22 @@ namespace FranDanBackend.Models {
             friend2 = _friend2;
             accepted = false;
             blacklisted = false;
+        }
+        public FriendshipState getFriendshipState(bool reverse=false)
+        {
+            if (accepted)
+                return FriendshipState.FRIENDS;
+            else
+                if(blacklisted)
+                    if(!reverse)
+                        return FriendshipState.BLACKLISTED1;
+                    else
+                        return FriendshipState.BLACKLISTED2;
+                else
+                    if (!reverse)
+                        return FriendshipState.INVITED1;
+                    else
+                        return FriendshipState.INVITED2;
         }
     }
 }

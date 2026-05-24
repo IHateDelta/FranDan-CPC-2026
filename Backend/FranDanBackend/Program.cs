@@ -71,7 +71,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJw
 });
 builder.Services.AddScoped<JWTGenerator>();
 //Do Serwisów
-builder.Services.AddScoped<UserService>();
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<FriendService>();
 builder.Services.AddScoped<PlanService>();
 
 builder.Services.AddAuthorization();

@@ -15,7 +15,7 @@ namespace FranDanBackend.Models
         public DateTime endTime { get; set; }
         public int admininstratorId { get; set; }
         [ForeignKey(nameof(admininstratorId))]
-        public User administrator { get; set; }
+        public User creator { get; set; }
 
         public Plan() { }
 
@@ -30,7 +30,7 @@ namespace FranDanBackend.Models
             }
             catch (Exception) { throw new Exception("Date-exception"); }
             admininstratorId = _admininstrator.id;
-            administrator = _admininstrator;
+            creator = _admininstrator;
         }
 
         public PlanHeaderDTO toPlanHeaderDTO()

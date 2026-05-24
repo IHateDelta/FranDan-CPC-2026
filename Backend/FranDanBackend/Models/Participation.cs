@@ -8,6 +8,15 @@ using System.Numerics;
 namespace FranDanBackend.Models {
     public class Participation
     {
+        public enum Role
+        {
+            CREATOR,
+            ADMIN,
+            INVITED_ADMIN,
+            PARTICIPANT,
+            INVITED,
+            NONE
+        }
         [Key]
         public int id { get; set; }
         public int userId { get; set; }

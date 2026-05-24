@@ -13,14 +13,14 @@ using System.Threading.Tasks;
 namespace FranDanBackend.Controllers
 {
 
-    [Route("api/[controller]")]
+    [Route("api/auth")]
     [ApiController]
-    public class UserController : ControllerBase
+    public class AuthController : ControllerBase
     {
-        private readonly UserService userService;
-        public UserController(UserService _userService)
+        private readonly AuthService service;
+        public AuthController(AuthService _service)
         {
-            userService = _userService;
+            service = _service;
         }
 
         [HttpPost("register")]
@@ -29,7 +29,7 @@ namespace FranDanBackend.Controllers
         [EndpointDescription("During registration sends registration code.")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
-        public ActionResult<string> RegisterUser([FromBody] AuthRegisterDTO request)
+        public ActionResult<string> register([FromBody] AuthRegisterDTO request)
         {
             if (request == null)
             {
@@ -37,7 +37,7 @@ namespace FranDanBackend.Controllers
             }
             try
             {
-                userService.add(request);
+                service.addUser(request);
                 return Ok("Register success and code send.");
             }
             catch (Exception ex)
@@ -52,7 +52,7 @@ namespace FranDanBackend.Controllers
         [EndpointDescription("User has to paste verification code here.")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
-        public ActionResult<string> VerifyUser([FromBody] AuthVerifyDTO request)
+        public ActionResult<string> verify([FromBody] AuthVerifyDTO request)
         {
             if (request == null)
             {
@@ -60,7 +60,7 @@ namespace FranDanBackend.Controllers
             }
             try
             {
-                userService.verify(request);
+                service.verify(request);
                 return Ok("Verification success! You can log in!");
             }
             catch (Exception ex)
@@ -75,14 +75,14 @@ namespace FranDanBackend.Controllers
         [EndpointDescription("Returns JWT token upon successful authentication.")]
         [ProducesResponseType(typeof(JwtDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(string), StatusCodes.Status401Unauthorized)]
-        public ActionResult<JwtDTO> Login([FromBody] AuthLoginDTO request)
+        public ActionResult<JwtDTO> login([FromBody] AuthLoginDTO request)
         {
             if (request == null)
                 return BadRequest("Can't be null!");
 
             try
             {
-                var response = userService.login(request);
+                var response = service.login(request);
                 return Ok(response);
             }
             catch (Exception ex)
