@@ -19,15 +19,17 @@ namespace FranDanBackend.Models
         public int verifierId { get; set; }
         [ForeignKey(nameof(verifierId))]
         public Verifier verifier { get; set; }
+        public string occupation {  get; set; }
         public DateOnly birthday { get; set; }
         public User() { }
 
-        public User(string _username, string _email, bool _emailNotifications, string _passwordHash, string _birthday)
+        public User(string _username, string _email, bool _emailNotifications, string _passwordHash, string _occupation, string _birthday)
         {
             username = _username;
             email = new MailAddress(_email, _username);
             emailNotifications = _emailNotifications;
             passwordHash = _passwordHash;
+            occupation = _occupation;
             try { birthday = DateOnly.Parse(_birthday); } catch (Exception) { throw new Exception("Date-exception"); }
             verifier = new Verifier();
         }
@@ -72,6 +74,7 @@ namespace FranDanBackend.Models
             dto.id = id;
             dto.username = username;
             dto.email = email.Address;
+            dto.occupation = occupation;
             return dto;
         }
         public UserProtectedDTO toProtectedDTO()
@@ -80,15 +83,17 @@ namespace FranDanBackend.Models
             dto.id = id;
             dto.username = username;
             dto.email = email.Address;
+            dto.occupation = occupation;
             dto.birthday = birthday.ToString("dd.MM.yyyy");
             return dto;
         }
-        public PlanMemberDTO toPlanMemberDTO((bool,bool) status)
+        public PlanMemberDTO toPlanMemberDTO(bool accepted,bool admin)
         {
             PlanMemberDTO dto = new PlanMemberDTO();
             dto.username = username;
-            dto.accepted = status.Item1;
-            dto.admin = status.Item2;
+            dto.occupation = occupation;
+            dto.accepted = accepted;
+            dto.admin = admin;
             return dto;
         }
         /*

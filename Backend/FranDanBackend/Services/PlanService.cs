@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.IdentityModel.SecurityTokenService;
 using System.IO;
+using System.Numerics;
 
 namespace FranDanBackend.Services
 {
@@ -16,10 +17,14 @@ namespace FranDanBackend.Services
             context = _context;
         }
 
-        public void addPlan(int userId, PlanAddDTO dto)
+        public void create(int userId, PlanCreateDTO dto)
         {
             User user = context.getUserById(userId);
             Plan newPlan = new Plan(dto.title,dto.description,dto.startTime,dto.endTime,user);
+            context.Plans.Add(newPlan);
+            Participation creatorParticipation = new Participation(user, newPlan, true);
+            creatorParticipation.accepted = true;
+            context.Participations.Add(creatorParticipation);
             context.SaveChanges();
         }
         
@@ -41,6 +46,7 @@ namespace FranDanBackend.Services
             Participation participation = new Participation(invitedUser, plan, dto.admin);
             context.Participations.Add(participation);
             context.SaveChanges();
+            MailSender.sendPlanRequest(user, invitedUser, plan);
         }
         public void removeParticipant(int userId, PlanActionDTO dto)
         {

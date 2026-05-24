@@ -1,6 +1,6 @@
 ﻿
 namespace FranDanBackend.DTO{
-    public class PlanAddDTO
+    public class PlanCreateDTO
     {
         public string title { get; set; }
         public string description { get; set; }

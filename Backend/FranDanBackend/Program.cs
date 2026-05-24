@@ -51,10 +51,6 @@ builder.Services.AddDbContext<MyContext>(options =>
     options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")
         ?? "Data Source=FranDanDB.db"));
 
-//builder.Services.AddScoped<MySeeder>();
-
-//Do JWT
-
 string secretKeyString = builder.Configuration["JwtSecretKey"]
     ?? throw new InvalidOperationException("JwtSecretKey is not configured.");
 var secretKey = Encoding.UTF8.GetBytes(secretKeyString);
