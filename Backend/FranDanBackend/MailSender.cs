@@ -17,8 +17,11 @@ namespace FranDanBackend
             {
                 json = r.ReadToEnd();
             }
-            Console.WriteLine(json);
             LoginInfo? loginInfo = JsonSerializer.Deserialize<LoginInfo>(json);
+            if (loginInfo == null)
+            {
+                throw new Exception("Could not load email config.");
+            }
             return loginInfo;
         }
         public MailAddress getEmail() {

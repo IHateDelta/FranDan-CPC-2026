@@ -141,7 +141,7 @@ namespace FranDanBackend.Services
             List<PlanMemberDTO> members = new List<PlanMemberDTO>();
             foreach (var (participant, accepted, creator, admin) in participantsList)
             {
-                members.Add(user.toPlanMemberDTO(accepted,admin));
+                members.Add(participant.toPlanMemberDTO(accepted,admin));
             }
             return new PlanFullDTO
             {

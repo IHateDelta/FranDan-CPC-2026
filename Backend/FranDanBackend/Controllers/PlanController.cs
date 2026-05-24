@@ -56,12 +56,12 @@ namespace FranDanBackend.Controllers
                     return BadRequest("Wrong token. No user with this id.");
                 }
                 int loggedInUserId = int.Parse(userIdClaim.Value);
-                service.fullPlan(loggedInUserId, request);
-                return Ok("Plan created succesfully!");
+                var fullPlan = service.fullPlan(loggedInUserId, request);
+                return Ok(fullPlan);
             }
             catch (Exception ex)
             {
-                return BadRequest($"Plan creation error: {ex.Message}");
+                return BadRequest($"Plan retrieval error: {ex.Message}");
             }
         }
     }
