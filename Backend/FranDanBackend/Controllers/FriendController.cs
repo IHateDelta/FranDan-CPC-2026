@@ -46,7 +46,7 @@ namespace FranDanBackend.Controllers
         }
         [HttpPatch("accept")]
         [Authorize]
-        public IActionResult accept([FromBody] UserIdDTO request)
+        public IActionResult accept(int request)
         {
             try
             {
@@ -56,7 +56,7 @@ namespace FranDanBackend.Controllers
                     return BadRequest("Wrong token. No user with this id.");
                 }
                 int loggedInUserId = int.Parse(userIdClaim.Value);
-                service.acceptFriend(loggedInUserId, request);
+                service.acceptFriend(loggedInUserId, new UserIdDTO { id = request });
                 return Ok("Friend invite accepted succesfully!");
             }
             catch (Exception ex)
@@ -66,7 +66,7 @@ namespace FranDanBackend.Controllers
         }
         [HttpPatch("reject")]
         [Authorize]
-        public IActionResult reject([FromBody] UserIdDTO request)
+        public IActionResult reject(int request)
         {
             try
             {
@@ -76,7 +76,7 @@ namespace FranDanBackend.Controllers
                     return BadRequest("Wrong token. No user with this id.");
                 }
                 int loggedInUserId = int.Parse(userIdClaim.Value);
-                service.rejectFriend(loggedInUserId, request);
+                service.rejectFriend(loggedInUserId, new UserIdDTO { id = request });
                 return Ok("Friend invite rejected succesfully! This user is from now on black list.");
             }
             catch (Exception ex)
@@ -86,7 +86,7 @@ namespace FranDanBackend.Controllers
         }
         [HttpDelete("delete")]
         [Authorize]
-        public IActionResult delete([FromBody] UserIdDTO request)
+        public IActionResult delete(int request)
         {
             try
             {
@@ -96,7 +96,7 @@ namespace FranDanBackend.Controllers
                     return BadRequest("Wrong token. No user with this id.");
                 }
                 int loggedInUserId = int.Parse(userIdClaim.Value);
-                service.deleteFriend(loggedInUserId, request);
+                service.deleteFriend(loggedInUserId, new UserIdDTO { id = request });
                 return Ok("Friend removed succesfully! This user is from now on black list.");
             }
             catch (Exception ex)

@@ -1,6 +1,7 @@
 ﻿using FranDanBackend;
 using FranDanBackend.DTO;
 using FranDanBackend.Models;
+using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using System.IO;
 using System.Net.Mail;

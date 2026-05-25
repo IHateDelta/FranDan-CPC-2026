@@ -34,8 +34,29 @@ namespace FranDanBackend.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest($"Plan creation error: {ex.Message}");
+                return BadRequest($"DTO generation error: {ex.Message}");
+            }
+        }
+        [HttpDelete("delete")]
+        [Authorize]
+        public IActionResult delete()
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                {
+                    return BadRequest("Wrong token. No user with this id.");
+                }
+                int loggedInUserId = int.Parse(userIdClaim.Value);
+                service.delete(loggedInUserId);
+                return Ok("Your account deleted succesfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"User account deletion error: {ex.Message}");
             }
         }
     }
+
 }

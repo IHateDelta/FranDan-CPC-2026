@@ -39,20 +39,33 @@ namespace FranDanBackend
             modelBuilder.Entity<Plan>()
                 .HasOne(p => p.creator)
                 .WithMany()
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Restrict);
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.SetNull);
 
             modelBuilder.Entity<Friendship>()
                 .HasOne(f => f.friend1)
                 .WithMany()
                 .HasForeignKey(f => f.friend1Id)
-                .OnDelete(DeleteBehavior.Restrict);
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Cascade);
 
             modelBuilder.Entity<Friendship>()
                 .HasOne(f => f.friend2)
                 .WithMany()
                 .HasForeignKey(f => f.friend2Id)
-                .OnDelete(DeleteBehavior.Restrict);
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Participation>()
+                .HasOne(p => p.user)
+                .WithMany()
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<Participation>()
+                .HasOne(p => p.plan)
+                .WithMany()
+                .IsRequired(true)
+                .OnDelete(DeleteBehavior.Cascade);
         }
         public User getUserById(int id) {
             User foundUser = Users.Find(id);

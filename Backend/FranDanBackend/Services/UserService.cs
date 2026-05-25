@@ -59,6 +59,11 @@ namespace FranDanBackend.Services
                 planInvitations=planInvitationsListDTO
             };
         }
-        
+        public void delete(int userId)
+        {
+            User deleteUser = context.getUserById(userId);
+            context.Users.Remove(deleteUser);
+            context.SaveChanges();
+        }
     }
 }

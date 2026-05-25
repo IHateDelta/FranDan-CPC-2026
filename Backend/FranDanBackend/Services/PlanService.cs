@@ -2,9 +2,11 @@
 using FranDanBackend.DTO;
 using FranDanBackend.Models;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.IdentityModel.SecurityTokenService;
+using System.Globalization;
 using System.IO;
 using System.Numerics;
 
@@ -28,7 +30,25 @@ namespace FranDanBackend.Services
             context.Participations.Add(creatorParticipation);
             context.SaveChanges();
         }
-        
+        public void edit(int userId, PlanEditDTO dto)
+        {
+            User user = context.getUserById(userId);
+            Plan plan = context.getPlanById(dto.id);
+            switch (context.getParticipationRole(user, plan))
+            {
+                case Participation.Role.CREATOR: break;
+                case Participation.Role.ADMIN: break;
+                case Participation.Role.INVITED_ADMIN: throw new Exception("Accept invitation before editing plan.");
+                case Participation.Role.PARTICIPANT: throw new Exception("You have to be admin to edit the plan.");
+                case Participation.Role.INVITED: throw new Exception("First join the plan. You have to be admin to edit the plan.");
+                case Participation.Role.NONE: throw new Exception("You are not included in this plan.");
+            }
+            plan.title = dto.title;
+            plan.category = dto.category;
+            plan.description = dto.description;
+            plan.startTime = DateTime.Parse(dto.startTime, CultureInfo.GetCultureInfo("pl-PL"));
+            context.SaveChanges();
+        }
         public void addParticipant(int userId, PlanParticipantDTO dto)
         {
             User user = context.getUserById(userId);
@@ -154,6 +174,14 @@ namespace FranDanBackend.Services
                 participants=members
 
             };
+        }
+        public void delete(int userId, PlanIdDTO dto)
+        {
+            User user = context.getUserById(userId);
+            Plan plan = context.getPlanById(dto.id);
+            if(plan.creator!=user) throw new Exception("No authority to delete this plan"); 
+            context.Plans.Remove(plan);
+            context.SaveChanges();
         }
 
     }

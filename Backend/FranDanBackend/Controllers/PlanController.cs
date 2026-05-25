@@ -44,9 +44,9 @@ namespace FranDanBackend.Controllers
                 return BadRequest($"Plan creation error: {ex.Message}");
             }
         }
-        [HttpGet("full")]
+        [HttpPut("edit")]
         [Authorize]
-        public IActionResult GetFull([FromBody] PlanIdDTO request)
+        public IActionResult edit([FromBody] PlanEditDTO request)
         {
             try
             {
@@ -56,12 +56,52 @@ namespace FranDanBackend.Controllers
                     return BadRequest("Wrong token. No user with this id.");
                 }
                 int loggedInUserId = int.Parse(userIdClaim.Value);
-                var fullPlan = service.fullPlan(loggedInUserId, request);
+                service.edit(loggedInUserId, request);
+                return Ok("Plan edited succesfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Plan edition error: {ex.Message}");
+            }
+        }
+        [HttpGet("full")]
+        [Authorize]
+        public IActionResult getFull(int request)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                {
+                    return BadRequest("Wrong token. No user with this id.");
+                }
+                int loggedInUserId = int.Parse(userIdClaim.Value);
+                var fullPlan = service.fullPlan(loggedInUserId, new PlanIdDTO {id=request});
                 return Ok(fullPlan);
             }
             catch (Exception ex)
             {
                 return BadRequest($"Plan retrieval error: {ex.Message}");
+            }
+        }
+        [HttpDelete("delete")]
+        [Authorize]
+        public IActionResult delete(int request)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                {
+                    return BadRequest("Wrong token. No user with this id.");
+                }
+                int loggedInUserId = int.Parse(userIdClaim.Value);
+                service.delete(loggedInUserId, new PlanIdDTO { id = request });
+                return Ok("Plan deleted succesfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"Plan deletion error: {ex.Message}");
             }
         }
     }
