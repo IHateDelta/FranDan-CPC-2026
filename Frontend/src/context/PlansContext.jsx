@@ -11,29 +11,24 @@ export const PlansProvider = ({ children }) => {
   const [plans, setPlans] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 1. POBIERANIE PLANÓW Z BACKENDU
   const fetchPlans = async () => {
-    if (!token) return;
-    setLoading(true);
     try {
       const response = await api.plans.getFull();
 
+      if (response.status === 400) {
+        setPlans([]);
+        return;
+      }
+
       if (response.ok) {
         const data = await response.json();
-
-        const mappedPlans = data.map((plan) => ({
-          ...plan,
-          date: plan.startTime ? plan.startTime.replace("T", " ") : "",
-          participants: plan.participants || ["Ja"],
-        }));
-
-        setPlans(mappedPlans);
+        setPlans(data);
+      } else {
+        // Inne, prawdziwe błędy
+        console.error("Wystąpił inny błąd podczas pobierania planów");
       }
     } catch (error) {
-      console.error("Błąd pobierania planów:", error);
-      addToast("Błąd! Nie udało się pobrać planów z serwera.", "error");
-    } finally {
-      setLoading(false);
+      console.error("Błąd połączenia z serwerem:", error);
     }
   };
 
@@ -67,18 +62,53 @@ export const PlansProvider = ({ children }) => {
     }
   };
 
-  const updatePlan = (planId, updatedData) => {
+  const updatePlan = async (planId, updatedData) => {
+    const previousPlans = [...plans];
+
     setPlans(
       plans.map((plan) =>
         plan.id === planId ? { ...plan, ...updatedData } : plan,
       ),
     );
-    addToast("Zaktualizowano plan (tylko lokalnie).", "info");
+
+    try {
+      const payload = {
+        id: planId,
+        title: updatedData.title,
+        category: updatedData.category,
+        startTime: updatedData.date ? updatedData.date.replace(" ", "T") : "",
+        description: updatedData.description || "",
+      };
+
+      const response = await api.plans.edit(payload);
+
+      if (!response.ok) {
+        throw new Error("Błąd API podczas edycji planu");
+      }
+      addToast("Plan został zaktualizowany!", "success");
+    } catch (error) {
+      console.error("Błąd edycji planu:", error);
+      setPlans(previousPlans);
+      addToast("Błąd serwera. Nie udało się zaktualizować planu.", "error");
+    }
   };
 
-  const deletePlan = (planId) => {
+  const deletePlan = async (planId) => {
+    const previousPlans = [...plans];
     setPlans(plans.filter((plan) => plan.id !== planId));
-    addToast("Usunięto plan (tylko lokalnie).", "info");
+
+    try {
+      const response = await api.plans.delete(planId);
+
+      if (!response.ok) {
+        throw new Error("Błąd API podczas usuwania planu");
+      }
+      addToast("Plan został usunięty!", "success");
+    } catch (error) {
+      console.error("Błąd usuwania planu:", error);
+      setPlans(previousPlans);
+      addToast("Błąd serwera. Nie udało się usunąć planu.", "error");
+    }
   };
 
   return (

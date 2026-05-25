@@ -51,7 +51,7 @@ const Friends = () => {
       <div className="search-box">
         <input
           type="text"
-          placeholder="Wyszukaj znajomego po nazwisku..."
+          placeholder="Wyszukaj znajomego ..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />

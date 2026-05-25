@@ -9,14 +9,7 @@ export const FriendsProvider = ({ children }) => {
   const { user } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
 
-  const [allUsers] = useState([
-    { id: 101, name: "Dawid Podsiadło", role: "Student PWr", avatar: "D" },
-    { id: 102, name: "Jakub Grzegorczyk", role: "Student PWr", avatar: "J" },
-    { id: 103, name: "Jan Kowalski", role: "Student", avatar: "J" },
-    { id: 104, name: "Anna Nowak", role: "Student", avatar: "A" },
-    { id: 105, name: "Piotr Wiśniewski", role: "Absolwent", avatar: "P" },
-  ]);
-
+  const [allUsers, setAllUsers] = useState([]);
   const [friendStatuses, setFriendStatuses] = useState({});
   const [loading, setLoading] = useState(false);
 

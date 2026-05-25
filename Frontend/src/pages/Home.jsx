@@ -8,14 +8,14 @@ import "./Home.css";
 const Home = () => {
   const { token, user } = useContext(AuthContext);
   const { friendStatuses } = useContext(FriendsContext);
-  const { plans } = useContext(PlansContext);
+  const { plans, fetchPlans } = useContext(PlansContext);
 
   if (!token) {
     return <Navigate to="/login" replace />;
   }
 
-  const myBirthday = user?.userName
-    ? localStorage.getItem(`birthday_${user.userName}`)
+  const myBirthday = user?.username
+    ? localStorage.getItem(`birthday_${user.username}`)
     : null;
 
   const checkIsBirthday = (dateString) => {
@@ -29,13 +29,13 @@ const Home = () => {
 
   const isBirthdayToday = checkIsBirthday(myBirthday);
 
-  const allBirthdays = [
-    { id: 101, name: "Dawid Podsiadło", date: "2026-06-15" },
-    { id: 102, name: "Jakub Grzegorczyk", date: "2026-07-20" },
-    { id: 103, name: "Jan Kowalski", date: "2026-08-10" },
-    { id: 104, name: "Anna Nowak", date: "2026-09-05" },
-    { id: 105, name: "Piotr Wiśniewski", date: "2026-10-12" },
-  ];
+  const allBirthdays = plans
+    .filter((plan) => plan.category === "birthday")
+    .map((plan) => ({
+      id: plan.id,
+      name: plan.title,
+      date: plan.date,
+    }));
 
   const friendsBirthdays = allBirthdays.filter(
     (person) => friendStatuses[person.id] === "accepted",
@@ -72,7 +72,7 @@ const Home = () => {
     <div className="home-container">
       {isBirthdayToday && (
         <div className="birthday-banner">
-          🎉 Wszystkiego najlepszego, {user?.userName.split(" ")[0]}! Spełnienia
+          🎉 Wszystkiego najlepszego, {user?.username.split(" ")[0]}! Spełnienia
           marzeń i świetnej zabawy! 🎁
         </div>
       )}

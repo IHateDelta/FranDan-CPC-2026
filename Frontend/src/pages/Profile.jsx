@@ -1,31 +1,47 @@
 import { useState, useContext, useEffect } from "react";
 import { AuthContext } from "../context/AuthContext";
 import { ToastContext } from "../context/ToastContext";
+import { api } from "../services/api";
 import "./Profile.css";
 
 const Profile = () => {
-  const { user } = useContext(AuthContext);
+  const { user, fetchUserData } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
 
-  const [myBirthday, setMyBirthday] = useState(() => {
-    if (user?.userName) {
-      return localStorage.getItem(`birthday_${user.userName}`) || "";
-    }
-    return "";
-  });
+  const [myBirthday, setMyBirthday] = useState("");
 
   useEffect(() => {
-    if (user?.userName) {
-      const savedDate = localStorage.getItem(`birthday_${user.userName}`);
-      setMyBirthday(savedDate || "");
+    if (user && user.birthday) {
+      if (user.birthday.includes(".")) {
+        const [day, month, year] = user.birthday.split(".");
+        const formattedDate = `${year}-${month}-${day}`;
+        setMyBirthday(formattedDate);
+      } else if (user.birthday.includes("T")) {
+        setMyBirthday(user.birthday.split("T")[0]);
+      } else {
+        setMyBirthday(user.birthday);
+      }
     }
   }, [user]);
 
-  const handleSave = (e) => {
+  const handleSave = async (e) => {
     e.preventDefault();
-    if (user?.userName) {
-      localStorage.setItem(`birthday_${user.userName}`, myBirthday);
-      addToast("Data urodzin została zapisana!", "success");
+
+    try {
+      const response = await api.user.update({ birthday: myBirthday });
+
+      if (response.ok) {
+        addToast("Data urodzin została zapisana w bazie!", "success");
+
+        if (fetchUserData) {
+          await fetchUserData();
+        }
+      } else {
+        addToast("Wystąpił błąd podczas zapisu.", "error");
+      }
+    } catch (error) {
+      console.error("Błąd zapisywania profilu:", error);
+      addToast("Brak połączenia z serwerem.", "error");
     }
   };
 
@@ -60,11 +76,11 @@ const Profile = () => {
 
       <div className="profile-card">
         <div className="avatar-placeholder">
-          {user?.userName?.charAt(0) || "U"}
+          {user.username ? user.username.charAt(0).toUpperCase() : "U"}
         </div>
         <div className="user-details">
-          <h3>{user?.userName || "Użytkownik"}</h3>
-          <p className="role-text">Rola: {user?.role || "Brak"}</p>
+          <h3>{user.username || "Użytkownik"}</h3>
+          <p className="role-text">Rola: {user.occupation || "Brak"}</p>
         </div>
       </div>
 

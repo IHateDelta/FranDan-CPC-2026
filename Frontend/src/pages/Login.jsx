@@ -9,24 +9,16 @@ const Login = () => {
   const { login } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const Users = {
-      "franciszek@pwr.pl": { userName: "Franciszek Pora", role: "Student" },
-      "dawid@pwr.pl": { userName: "Dawid Podsiadło", role: "Student" },
-      "jakub@pwr.pl": { userName: "Jakub Grzegorzek", role: "Student" },
-    };
-
-    const fakeToken = "fake-jwt-token";
-    const userData = Users[email] || {
-      userName: email.split("@")[0],
-      role: "Gość",
-    };
-
-    login(fakeToken, userData);
-    alert(`Witaj, ${userData.userName}! Zostałeś zalogowany.`);
-    navigate("/");
+    try {
+      await login(email, password);
+      navigate("/");
+    } catch (error) {
+      console.error("Błąd logowania:", error);
+      alert("Nie udało się zalogować. Sprawdź e-mail i hasło.");
+    }
   };
 
   return (
@@ -35,12 +27,12 @@ const Login = () => {
         <h2>Zaloguj się</h2>
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">
-            <label>Adres E-mail: </label>
+            <label>Adres E-mail / Login: </label>
             <input
-              type="email"
+              type="text"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="name@example.com"
+              placeholder="Twój e-mail lub login"
               required
             />
           </div>

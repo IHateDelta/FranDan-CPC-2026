@@ -7,7 +7,8 @@ import "./PlansList.css";
 const PlansList = () => {
   const [filter, setFilter] = useState("all");
   const { token } = useContext(AuthContext);
-  const { plans, loading, deletePlan, updatePlan } = useContext(PlansContext);
+  const { plans, fetchPlans, loading, deletePlan, updatePlan } =
+    useContext(PlansContext);
 
   const [editingPlanId, setEditingPlanId] = useState(null);
   const [editFormData, setEditFormData] = useState({

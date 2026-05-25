@@ -34,6 +34,23 @@ export const api = {
     getFull: async () =>
       fetch(`${API_BASE_URL}/api/user/full`, {
         method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }),
+
+    update: async (data) =>
+      fetch(`${API_BASE_URL}/api/user/edit`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify(data),
+      }),
+    delete: async () =>
+      fetch(`${API_BASE_URL}/api/user/delete`, {
+        method: "DELETE",
         headers: getHeaders(),
       }),
   },
@@ -74,9 +91,22 @@ export const api = {
       }),
     getFull: async () =>
       fetch(`${API_BASE_URL}/api/plan/full`, {
-        method: "POST",
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+      }),
+    edit: async (planData) =>
+      fetch(`${API_BASE_URL}/api/plan/edit`, {
+        method: "PUT",
         headers: getHeaders(),
-      }), // Zgodnie z dokumentacją to jest POST
+        body: JSON.stringify(planData),
+      }),
+    delete: async (planId) =>
+      fetch(`${API_BASE_URL}/api/plan/delete?request=${planId}`, {
+        method: "DELETE",
+        headers: getHeaders(),
+      }),
   },
 
   participation: {

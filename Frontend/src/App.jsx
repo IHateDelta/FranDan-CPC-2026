@@ -11,6 +11,8 @@ import AddPlan from "./pages/AddPlan";
 import Profile from "./pages/Profile";
 import Login from "./pages/Login";
 import Friends from "./pages/Friends";
+import Register from "./pages/Register";
+import Verify from "./pages/Verify";
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
                   <Route path="/add-plan" element={<AddPlan />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/verify" element={<Verify />} />
                   <Route path="/friends" element={<Friends />} />
                 </Routes>
               </div>

@@ -13,6 +13,7 @@ export const AuthProvider = ({ children }) => {
   const fetchUserData = async () => {
     try {
       const response = await api.user.getFull();
+
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
@@ -38,13 +39,20 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (username, password) => {
     try {
-      const response = await api.auth.login({ username, password });
+      const response = await api.auth.login({
+        usernameOrEmail: username,
+        password: password,
+      });
 
       if (response.ok) {
-        const tokenString = await response.text();
+        const responseData = await response.json();
+        const tokenString = responseData.jwtKey;
 
         localStorage.setItem("token", tokenString);
         setToken(tokenString);
+
+        await fetchUserData();
+
         addToast("Zalogowano pomyślnie!", "success");
         return true;
       } else {

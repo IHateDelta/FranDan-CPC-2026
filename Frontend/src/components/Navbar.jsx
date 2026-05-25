@@ -5,7 +5,7 @@ import { AuthContext } from "../context/AuthContext";
 const Navbar = () => {
   const { token, logout, user } = useContext(AuthContext);
 
-  const imie = user?.userName?.split(" ")[0] || "Nieznajomy";
+  const imie = user?.username?.split(" ")[0] || "Nieznajomy";
 
   return (
     <nav
@@ -83,9 +83,27 @@ const Navbar = () => {
             </button>
           </>
         ) : (
-          <Link to="/login" style={{ color: "white", textDecoration: "none" }}>
-            Zaloguj
-          </Link>
+          <>
+            <Link
+              to="/login"
+              style={{
+                color: "white",
+                textDecoration: "none",
+                marginRight: "15px",
+              }}
+            >
+              Zaloguj
+            </Link>
+            <Link
+              to="/register"
+              style={{
+                color: "white",
+                textDecoration: "none",
+              }}
+            >
+              Zarejestruj się
+            </Link>
+          </>
         )}
       </div>
     </nav>
