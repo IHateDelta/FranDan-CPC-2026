@@ -1,8 +1,9 @@
 ﻿
-
+using FranDanBackend;
+using FranDanBackend.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi;
 using Microsoft.OpenApi.Models;
 using System.Text;
 
@@ -20,72 +21,74 @@ builder.Services.AddSwaggerGen(options =>
         Version = "v1.0"
     });
 
-
-    //Swagger + JWT
+    // POPRAWIONY SWAGGER: Czysty opis informujący użytkownika, by wkleił TYLKO token
     options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "Wklej sw�j token JWT:",
+        Description = "Wprowadź sam wygenerowany token JWT (bez słowa Bearer i bez żadnych opisów).",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.Http,
-        Scheme = "Bearer"
+        Scheme = "Bearer" // To automatycznie doda słowo "Bearer " w żądaniu!
     });
-    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+
+    options.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
-            new OpenApiSecuritySchemeReference("Bearer", document),
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
             new List<string>()
         }
     });
-
-
 });
 
-builder.Services.AddDbContext<MyContext>();
+builder.Services.AddDbContext<MyContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")
+        ?? "Data Source=FranDanDB.db"));
 
-builder.Services.AddScoped<MySeeder>();
-
-//Do JWT
-String secretKeyString = builder.Configuration["JwtSecretKey"];
+string secretKeyString = builder.Configuration["JwtSecretKey"]
+    ?? throw new InvalidOperationException("JwtSecretKey is not configured.");
 var secretKey = Encoding.UTF8.GetBytes(secretKeyString);
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options => {
     options.TokenValidationParameters = new TokenValidationParameters
     {
-        ValidateIssuer = true,
-        ValidateAudience = true,
+        ValidateIssuer = false,
+        ValidateAudience = false,
         ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
-        ValidIssuer = "MyAppName",
-        ValidAudience = "MyUsers",
         IssuerSigningKey = new SymmetricSecurityKey(secretKey)
     };
 });
 builder.Services.AddScoped<JWTGenerator>();
-
-//Do Repozytori�w i Serwis�w
-builder.Services.AddScoped<IDriverRepository, DBDriverRepository>();
-builder.Services.AddScoped<ITeamRepository, DBTeamRepository>();
-builder.Services.AddScoped<DriverService>();
-builder.Services.AddScoped<TeamService>();
-builder.Services.AddScoped<RaceService>();
+//Do Serwisów
+builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<FriendService>();
+builder.Services.AddScoped<PlanService>();
+builder.Services.AddScoped<UserService>();
 
 builder.Services.AddAuthorization();
-builder.Services.AddControllers();
 
 
 var app = builder.Build();
 
 
-//U�ycie Seedera
-using (var scrope = app.Services.CreateScope())
+using (var scope = app.Services.CreateScope())
 {
-    var seeder = scrope.ServiceProvider.GetRequiredService<MySeeder>();
-    seeder.Seed();
-}
+    var context = scope.ServiceProvider.GetRequiredService<MyContext>();
 
+    // Ta metoda sprawdza, czy tabele istnieją. Jeśli plik jest pusty, 
+    // EF Core natychmiast wygeneruje w nim strukturę tabel (Users, Plans, itp.)
+    context.Database.EnsureCreated();
+}
 if (app.Environment.IsDevelopment())
 {
-    //U�ycie Swaggera
+    //Użycie Swaggera
     app.UseSwagger();
     app.UseSwaggerUI();
 }
@@ -98,7 +101,7 @@ app.UseAuthorization(); //KONIECZNE DO JWT
 app.MapControllers();
 
 app.Run();
-
+/*
 namespace FranDanBackend
 {
     public class Program
@@ -107,3 +110,4 @@ namespace FranDanBackend
         }
     }
 }
+*/

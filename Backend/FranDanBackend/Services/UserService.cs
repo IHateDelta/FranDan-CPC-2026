@@ -1,85 +1,69 @@
-﻿using F1ProjKredek;
+﻿using FranDanBackend;
 using FranDanBackend.DTO;
 using FranDanBackend.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.IdentityModel.SecurityTokenService;
 using System.IO;
+using System.Numerics;
 
 namespace FranDanBackend.Services
 {
     public class UserService
     {
-        public MyContext context {  get; set; }
+        public MyContext context { get; set; }
         public UserService(MyContext _context)
         {
             context = _context;
         }
-        public void add(AuthRegisterDTO dto)
-        {
-            if (context.Users.Any(user => user.email.Address.ToLower() == dto.email.ToLower()))
-                return;
-            if(context.Users.Any(user => user.username.ToLower() == dto.username.ToLower()))
-                throw new Exception("User with this username exists.");
-            User newUser =new User(
-                dto.username,
-                dto.email,
-                dto.emailNotifications,
-                JWTGenerator.createHash(dto.password),
-                dto.birthday
-                );
-            context.Users.Add(newUser);
-            context.SaveChanges();
-        }
-        public void verify(AuthVerifyDTO dto)
-        {
-            User foundUser=context.Users.FirstOrDefault(user => user.email.Address.ToLower() == dto.usernameOrEmail.ToLower());
-            if (foundUser == null) foundUser = context.Users.FirstOrDefault(user => user.username.ToLower() == dto.usernameOrEmail.ToLower());
-            if (foundUser == null) throw new Exception("No user found!");
-            if (!foundUser.verifier.verify(dto.code)) throw new Exception("Wrong code!");
-            context.SaveChanges();
-        }
-        public void inviteFriend(int invitorId,UserFindDTO dto)
-        {
-            User invitorUser = context.Users.Find(invitorId);
-            if (invitorUser == null) throw new Exception("No user found!");
-            User invitedUser = context.Users.FirstOrDefault(user => user.email.Address.ToLower() == dto.usernameOrEmail.ToLower());
-            if (invitedUser == null) invitedUser = context.Users.FirstOrDefault(user => user.username.ToLower() == dto.usernameOrEmail.ToLower());
-            if (invitedUser == null) throw new Exception("No user found!");
-            invitorUser.inviteFriend(invitedUser);
-            context.SaveChanges();
-        }
-        public void acceptFriend(int invitorId, UserIdDTO dto)
-        {
-            User invitedUser = context.Users.Find(invitorId);
-            if (invitedUser == null) throw new Exception("No user found!");
-            User invitorUser = context.Users.Find(dto.id);
-            if (invitorUser == null) throw new Exception("No user found!");
-            invitedUser.inviteFriend(invitorUser);
-            context.SaveChanges();
-        }
-        public void rejectFriend(int invitorId, UserIdDTO dto)
-        {
-            User invitedUser = context.Users.Find(invitorId);
-            if (invitedUser == null) throw new Exception("No user found!");
-            User invitorUser = context.Users.Find(dto.id);
-            if (invitorUser == null) throw new Exception("No user found!");
-            invitedUser.rejectFriend(invitorUser);
-            context.SaveChanges();
-        }
-        public void removeFriend(int invitorId, UserIdDTO dto)
-        {
-            User removerUser = context.Users.Find(invitorId);
-            if (removerUser == null) throw new Exception("No user found!");
-            User removedUser = context.Users.Find(dto.id);
-            if (removedUser == null) throw new Exception("No user found!");
-            removerUser.removeFriend(removedUser);
-            context.SaveChanges();
-        }
-        public UserFullDTO fullInfo(int userId)
-        {
-            User user = context.Users.Find(userId);
-            if (user == null) throw new Exception("No user found!");
-            return user.toUserFullDTO();
+        public UserFullDTO getUserFullDTO(int userId) {
+            User user = context.getUserById(userId);
 
+            List<User> friendsList = context.getAllFriends(user);
+            List<UserProtectedDTO> friendsListDTO = new List<UserProtectedDTO>();
+            foreach (User friend in friendsList) {
+                friendsListDTO.Add(friend.toProtectedDTO());
+            }
+            friendsListDTO = friendsListDTO.OrderBy(f => f.days_to_birthday).ToList();
+
+            List<User> friendInvitationsList = context.getAllFriendInvitators(user);
+            List<UserProtectedDTO> friendInvitationsListDTO = new List<UserProtectedDTO>();
+            foreach (User friend in friendInvitationsList)
+            {
+                friendInvitationsListDTO.Add(friend.toProtectedDTO());
+            }
+            friendInvitationsListDTO = friendInvitationsListDTO.OrderBy(f => f.days_to_birthday).ToList();
+
+            var plansList = context.getAllPlans(user);
+            List<PlanHeaderDTO> plansListDTO = new List<PlanHeaderDTO>();
+            foreach (var (plan, creator, admin) in plansList)
+            {
+                plansListDTO.Add(plan.toPlanHeaderDTO(creator, admin));
+            }
+
+            var planInvitationsList = context.getAllPlanInvitations(user);
+            List<PlanHeaderDTO> planInvitationsListDTO = new List<PlanHeaderDTO>();
+            foreach (var (plan, admin) in planInvitationsList)
+            {
+                planInvitationsListDTO.Add(plan.toPlanHeaderDTO(false, admin));
+            }
+            return new UserFullDTO {
+                id = user.id,
+                username = user.username,
+                email=user.email.Address,
+                occupation=user.occupation,
+                birthday=user.birthday.ToString("dd.MM.yyyy"),
+                friends=friendsListDTO,
+                friendInvitations=friendInvitationsListDTO,
+                plans = plansListDTO,
+                planInvitations=planInvitationsListDTO
+            };
+        }
+        public void delete(int userId)
+        {
+            User deleteUser = context.getUserById(userId);
+            context.Users.Remove(deleteUser);
+            context.SaveChanges();
         }
     }
 }

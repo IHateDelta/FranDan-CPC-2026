@@ -21,6 +21,7 @@ namespace FranDanBackend
             var claims = new[]
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.id.ToString()),
+                new Claim(ClaimTypes.NameIdentifier, user.id.ToString()),
                 new Claim(ClaimTypes.Name, user.username),
                 new Claim(ClaimTypes.Email, user.email.Address),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())

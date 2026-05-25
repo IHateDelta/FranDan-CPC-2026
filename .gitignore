@@ -4,3 +4,6 @@
 *.user
 *.json
 *.db
+*.db-shm
+*.db-wal
+/Backend/FranDanBackend/appsettings.json

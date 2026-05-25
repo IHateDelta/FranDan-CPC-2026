@@ -2,9 +2,12 @@
 using FranDanBackend.DTO;
 using Microsoft.IdentityModel.SecurityTokenService;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Net.Mail;
 using System.Numerics;
-namespace FranDanBackend.Models{
+
+namespace FranDanBackend.Models
+{
     public class User
     {
         [Key]
@@ -13,29 +16,24 @@ namespace FranDanBackend.Models{
         public MailAddress email { get; set; }
         public string passwordHash { get; set; }
         public bool emailNotifications { get; set; }
+        public int verifierId { get; set; }
+        [ForeignKey(nameof(verifierId))]
         public Verifier verifier { get; set; }
-        public DateOnly birthday {  get; set; }
-        public HashSet<User> friends {  get; set; }
-        public HashSet<User> friendRequests { get; set; }
-        public HashSet<User> blackList { get; set; }
-        public HashSet<Plan> plans { get; set; }
-        public HashSet<Plan> planRequests { get; set; }
+        public string occupation {  get; set; }
+        public DateOnly birthday { get; set; }
         public User() { }
 
-        public User(string _username, string _email, bool _emailNotifications, string _passwordHash, string _birthday)
+        public User(string _username, string _email, bool _emailNotifications, string _occupation, string _passwordHash, string _birthday)
         {
             username = _username;
-            email = new MailAddress(_email,username);
+            email = new MailAddress(_email, _username);
             emailNotifications = _emailNotifications;
             passwordHash = _passwordHash;
+            occupation = _occupation;
+            try { birthday = DateOnly.Parse(_birthday); } catch (Exception) { throw new Exception("Date-exception"); }
             verifier = new Verifier();
-            try { birthday = DateOnly.Parse(_birthday); }catch (Exception) { throw new Exception("Date-exception"); }
-            friends = [];
-            friendRequests = new HashSet<User>();
-            blackList = new HashSet<User>();
-            plans = new HashSet<Plan>();
-            planRequests = new HashSet<Plan>();
         }
+        /*
         public void inviteFriend(User user)
         {
             if (friends.Contains(user)) throw new Exception("Already a friend.");
@@ -69,68 +67,41 @@ namespace FranDanBackend.Models{
             friends.Remove(user);
             blackList.Add(user);
         }
+        */
         public RequestorDTO toRequestorDTO()
         {
             RequestorDTO dto = new RequestorDTO();
             dto.id = id;
             dto.username = username;
             dto.email = email.Address;
+            dto.occupation = occupation;
             return dto;
         }
         public UserProtectedDTO toProtectedDTO()
         {
+            DateOnly today = DateOnly.FromDateTime(DateTime.Now);
+            DateOnly birthdayThisYear = new DateOnly(today.Year,birthday.Month,birthday.Day);
+            DateOnly birthdayNextYear = new DateOnly(today.Year+1,birthday.Month,birthday.Day);
+            int days_to_birthday = birthdayThisYear.DayNumber-today.DayNumber > 0 ? 
+                birthdayThisYear.DayNumber - today.DayNumber : 
+                birthdayNextYear.DayNumber - today.DayNumber ;
             UserProtectedDTO dto = new UserProtectedDTO();
             dto.id = id;
             dto.username = username;
             dto.email = email.Address;
+            dto.occupation = occupation;
             dto.birthday = birthday.ToString("dd.MM.yyyy");
+            dto.days_to_birthday = days_to_birthday;
             return dto;
         }
-        public PlanMemberDTO toPlanMemberDTO((bool,bool) status)
+        public PlanMemberDTO toPlanMemberDTO(bool accepted,bool admin)
         {
             PlanMemberDTO dto = new PlanMemberDTO();
             dto.username = username;
-            dto.accepted = status.Item1;
-            dto.admin = status.Item2;
+            dto.occupation = occupation;
+            dto.accepted = accepted;
+            dto.admin = admin;
             return dto;
         }
-        public UserFullDTO toUserFullDTO()
-        {
-            UserFullDTO dto=new UserFullDTO();
-            dto.id = id;
-            dto.username = username;
-            dto.email = email.Address;
-            dto.birthday = birthday.ToString("dd.MM.yyyy");
-            dto.friends = new List<UserProtectedDTO>();
-            foreach (User friend in friends)
-            {
-                dto.friends.Add(friend.toProtectedDTO());
-            }
-            dto.friendRequests = new List<UserProtectedDTO>();
-            foreach (User requestor in friendRequests)
-            {
-                dto.friends.Add(requestor.toProtectedDTO());
-            }
-            dto.plans = new List<PlanHeaderDTO>();
-            foreach (Plan plan in plans)
-            {
-                dto.plans.Add(plan.toPlanHeaderDTO());
-            }
-            return dto;
-        }
-        /*
-        public Plan createPlan(string _title, string _description, string _startTime, string _endTime)
-        {
-            return new Plan(_title, _description, _startTime, _endTime,this);
-        }
-        public void acceptPlan(Plan plan)
-        {
-            plan.accept(this);
-        }
-        public void rejectPlan(Plan plan)
-        {
-            plan.reject(this);
-        }
-        */
     }
 }
