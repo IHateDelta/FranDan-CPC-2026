@@ -99,12 +99,13 @@ namespace FranDanBackend
                 "Title:\n" +
                 $"{plan.title}\n" +
                 $"Category:\n" +
-                $"{plan.creator}\n" +
+                $"{plan.category}\n" +
                 $"Description:\n" +
                 $"{plan.description}\n" +
                 $"The plan is sheduled on {plan.startTime.ToString("G")}.\n" +
                 "Log in to accept or reject it.\n" +
-                "This email was generated automatically. Don't answear.\n" +
+                "This email was generated automatically.\n" +
+                "Don't answear.\n" +
                 "FranDan team\n";
             message.IsBodyHtml = false;
             using (var client = new SmtpClient("smtp.gmail.com", 587))
