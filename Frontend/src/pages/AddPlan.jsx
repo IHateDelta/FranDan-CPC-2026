@@ -1,20 +1,18 @@
 import { useState, useContext } from "react";
-import { useNavigate, Navigate, Link } from "react-router-dom";
+import { useNavigate, Navigate } from "react-router-dom";
 import { AuthContext } from "../context/AuthContext";
-import { PlansContext } from "../context/PlansContext";
-import { FriendsContext } from "../context/FriendsContext";
 import { ToastContext } from "../context/ToastContext";
+import { api } from "../services/api";
 import "./AddPlan.css";
 
 const AddPlan = () => {
   const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
   const [category, setCategory] = useState("inny");
 
-  const { addPlan } = useContext(PlansContext);
-  const { token } = useContext(AuthContext);
+  const { token, user, fetchUserData } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
-  const { allUsers, friendStatuses } = useContext(FriendsContext);
   const navigate = useNavigate();
 
   const [selectedFriendsIds, setSelectedFriendsIds] = useState([]);
@@ -23,7 +21,7 @@ const AddPlan = () => {
     return <Navigate to="/login" replace />;
   }
 
-  const myFriends = allUsers.filter((u) => friendStatuses[u.id] === "accepted");
+  const myFriends = user?.friends || [];
 
   const handleCheckboxChange = (friendId) => {
     if (selectedFriendsIds.includes(friendId)) {
@@ -33,7 +31,7 @@ const AddPlan = () => {
     }
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!title.trim()) {
@@ -49,24 +47,51 @@ const AddPlan = () => {
       return;
     }
 
-    const selectedFriends = selectedFriendsIds
-      .map((id) => {
-        const friend = allUsers.find((u) => u.id === id);
-        return friend ? friend : null;
-      })
-      .filter(Boolean);
+    const formattedDate = date.replace("T", " ");
 
-    const newPlan = {
-      id: Date.now(),
+    const newPlanDTO = {
       title: title.trim(),
-      category,
-      date: date.replace("T", " "),
-      participants: ["Ja", ...selectedFriends.map((f) => f.name)],
+      category: category,
+      description: description.trim(),
+      startTime: formattedDate,
     };
 
-    addPlan(newPlan);
-    addToast("Plan został pomyślnie dodany!", "success");
-    navigate("/plans");
+    try {
+      const response = await api.plans.create(newPlanDTO);
+
+      if (response.ok) {
+        const userResp = await api.user.getFull();
+
+        if (userResp.ok) {
+          const updatedUser = await userResp.json();
+
+          const createdPlan = updatedUser.plans.find(
+            (p) =>
+              p.title === newPlanDTO.title &&
+              p.startTime === newPlanDTO.startTime,
+          );
+
+          if (createdPlan && selectedFriendsIds.length > 0) {
+            for (const friendId of selectedFriendsIds) {
+              await api.participation.add({
+                planId: createdPlan.id,
+                userId: friendId,
+                admin: false,
+              });
+            }
+          }
+        }
+
+        await fetchUserData();
+        addToast("Plan i zaproszenia zostały pomyślnie wysłane!", "success");
+        navigate("/plans");
+      } else {
+        addToast("Błąd podczas dodawania planu.", "error");
+      }
+    } catch (error) {
+      console.error("Błąd sieci:", error);
+      addToast("Błąd serwera przy tworzeniu planu.", "error");
+    }
   };
 
   return (
@@ -82,6 +107,23 @@ const AddPlan = () => {
             required
           />
         </div>
+
+        <div className="form-group">
+          <label>Opis planu:</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Krótki opis wydarzenia..."
+            style={{
+              width: "100%",
+              padding: "10px",
+              borderRadius: "5px",
+              border: "1px solid #ccc",
+            }}
+            required
+          />
+        </div>
+
         <div className="form-group">
           <label>Data i godzina:</label>
           <input
@@ -104,8 +146,9 @@ const AddPlan = () => {
             <option value="inny">Inny</option>
           </select>
         </div>
+
         <div className="form-group">
-          <label>Wybierz uczestników wydarzenia:</label>
+          <label>Zaproś znajomych:</label>
           {myFriends.length > 0 ? (
             <div className="checkbox-friends-list">
               {myFriends.map((friend) => (
@@ -115,7 +158,7 @@ const AddPlan = () => {
                     checked={selectedFriendsIds.includes(friend.id)}
                     onChange={() => handleCheckboxChange(friend.id)}
                   />
-                  <span>{friend.name}</span>
+                  <span>{friend.username}</span>
                 </label>
               ))}
             </div>

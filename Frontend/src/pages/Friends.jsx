@@ -1,30 +1,79 @@
 import { useState, useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { FriendsContext } from "../context/FriendsContext";
 import { ToastContext } from "../context/ToastContext";
 import { Navigate } from "react-router-dom";
+import { api } from "../services/api";
 import "./Friends.css";
 
 const Friends = () => {
-  const { token, user } = useContext(AuthContext);
+  const { token, user, fetchUserData } = useContext(AuthContext);
   const { addToast } = useContext(ToastContext);
-  const [searchQuery, setSearchQuery] = useState("");
-
-  const {
-    allUsers,
-    friendStatuses,
-    loading,
-    inviteFriend,
-    acceptFriend,
-    rejectFriend,
-    removeFriend,
-  } = useContext(FriendsContext);
+  const [inviteValue, setInviteValue] = useState("");
 
   if (!token) {
     return <Navigate to="/login" replace />;
   }
 
-  if (loading) {
+  const friendsList = user?.friends || [];
+  const invitationsList = user?.friendInvitations || [];
+
+  const handleInvite = async (e) => {
+    e.preventDefault();
+    if (!inviteValue.trim()) return;
+
+    try {
+      const response = await api.friends.invite(inviteValue);
+      if (response.ok) {
+        addToast("Wysłano zaproszenie do znajomych!", "success");
+        setInviteValue("");
+        await fetchUserData(); // Odświeżamy dane
+      } else {
+        addToast("Nie udało się wysłać zaproszenia. Sprawdź login.", "error");
+      }
+    } catch (error) {
+      addToast("Błąd serwera podczas wysyłania zaproszenia.", "error");
+    }
+  };
+
+  const handleAccept = async (id) => {
+    try {
+      const response = await api.friends.accept(id);
+      if (response.ok) {
+        addToast("Zaproszenie zostało zaakceptowane!", "success");
+        await fetchUserData();
+      }
+    } catch (error) {
+      addToast("Błąd akceptacji zaproszenia.", "error");
+    }
+  };
+
+  const handleReject = async (id) => {
+    try {
+      const response = await api.friends.reject(id);
+      if (response.ok) {
+        addToast("Zaproszenie zostało odrzucone.", "info");
+        await fetchUserData();
+      }
+    } catch (error) {
+      addToast("Błąd odrzucania zaproszenia.", "error");
+    }
+  };
+
+  const handleRemove = async (id) => {
+    if (!window.confirm("Na pewno chcesz usunąć tego znajomego?")) return;
+
+    try {
+      const response = await api.friends.delete(id);
+      if (response.ok) {
+        addToast("Znajomy został usunięty.", "info");
+        await fetchUserData();
+      }
+    } catch (error) {
+      addToast("Błąd usuwania znajomego.", "error");
+    }
+  };
+
+  if (!user) {
     return (
       <div
         className="friends-container"
@@ -32,118 +81,117 @@ const Friends = () => {
       >
         <div className="spinner"></div>
         <p style={{ color: "#868e96", marginTop: "10px" }}>
-          Wyszukiwanie znajomych w bazie danych...
+          Ładowanie danych...
         </p>
       </div>
     );
   }
 
-  const others = allUsers.filter((u) => u.id !== user?.id);
-
-  const filteredUsers = others.filter((friend) =>
-    friend.name.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-
   return (
     <div className="friends-container">
       <h2>Znajomi</h2>
 
-      <div className="search-box">
-        <input
-          type="text"
-          placeholder="Wyszukaj znajomego ..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-        />
+      <div className="search-box" style={{ marginBottom: "30px" }}>
+        <form onSubmit={handleInvite} style={{ display: "flex", gap: "10px" }}>
+          <input
+            type="text"
+            placeholder="Wpisz login lub e-mail znajomego..."
+            value={inviteValue}
+            onChange={(e) => setInviteValue(e.target.value)}
+            style={{ flex: 1 }}
+          />
+          <button type="submit" className="btn-invite">
+            Zaproś
+          </button>
+        </form>
       </div>
 
-      <div className="friends-grid">
-        {filteredUsers.length > 0 ? (
-          filteredUsers.map((person) => (
-            <div key={person.id} className="friend-card">
-              <div className="friend-info">
-                <div className="friend-avatar">{person.avatar}</div>
-                <div>
-                  <h3>{person.name}</h3>
-                  <p>{person.role}</p>
+      {invitationsList.length > 0 && (
+        <div style={{ marginBottom: "40px" }}>
+          <h3 style={{ borderBottom: "2px solid #eee", paddingBottom: "10px" }}>
+            Oczekujące zaproszenia ({invitationsList.length})
+          </h3>
+          <div className="friends-grid">
+            {invitationsList.map((person) => (
+              <div key={person.id} className="friend-card">
+                <div className="friend-info">
+                  <div className="friend-avatar">
+                    {person.username
+                      ? person.username.charAt(0).toUpperCase()
+                      : "?"}
+                  </div>
+                  <div>
+                    <h3>{person.username}</h3>
+                    <p>{person.occupation || "Brak roli"}</p>
+                  </div>
+                </div>
+                <div className="friend-actions">
+                  <button
+                    className="btn-accept"
+                    onClick={() => handleAccept(person.id)}
+                    title="Akceptuj zaproszenie"
+                  >
+                    ✔️
+                  </button>
+                  <button
+                    className="btn-remove"
+                    onClick={() => handleReject(person.id)}
+                    title="Odrzuć zaproszenie"
+                  >
+                    ❌
+                  </button>
                 </div>
               </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-              <div className="friend-actions">
-                {friendStatuses[person.id] === "accepted" ? (
-                  <>
-                    <span className="status-badge accepted">Znajomy</span>
-                    <button
-                      className="btn-remove"
-                      onClick={() => {
-                        removeFriend(person.id);
-                        addToast("Znajomy został usunięty.", "info");
-                      }}
-                      title="Usuń ze znajomych"
-                    >
-                      ❌
-                    </button>
-                  </>
-                ) : friendStatuses[person.id] === "pending" ? (
-                  <>
-                    <span className="status-badge pending">⏳ Wysłano</span>
-                    <button
-                      className="btn-accept"
-                      onClick={() => {
-                        acceptFriend(person.id);
-                        addToast(
-                          "Zaproszenie zostało zaakceptowane!",
-                          "success",
-                        );
-                      }}
-                      title="Akceptuj zaproszenie"
-                    >
-                      ✔️
-                    </button>
-                    <button
-                      className="btn-remove"
-                      onClick={() => {
-                        rejectFriend(person.id);
-                        addToast("Zaproszenie zostało odrzucone!", "info");
-                      }}
-                      title="Odrzuć zaproszenie"
-                    >
-                      ❌
-                    </button>
-                  </>
-                ) : friendStatuses[person.id] === "rejected" ? (
-                  <>
-                    <span className="status-badge rejected">Odrzucono</span>
-                    <button
-                      className="btn-remove"
-                      onClick={() => {
-                        removeFriend(person.id);
-                        addToast("Status został zresetowany!", "info");
-                      }}
-                      title="Zresetuj status"
-                    >
-                      🔄
-                    </button>
-                  </>
-                ) : (
+      <div>
+        <h3 style={{ borderBottom: "2px solid #eee", paddingBottom: "10px" }}>
+          Moi Znajomi ({friendsList.length})
+        </h3>
+        <div className="friends-grid">
+          {friendsList.length > 0 ? (
+            friendsList.map((person) => (
+              <div key={person.id} className="friend-card">
+                <div className="friend-info">
+                  <div className="friend-avatar">
+                    {person.username
+                      ? person.username.charAt(0).toUpperCase()
+                      : "?"}
+                  </div>
+                  <div>
+                    <h3>{person.username}</h3>
+                    <p>{person.occupation || "Brak roli"}</p>
+                  </div>
+                </div>
+
+                <div className="friend-actions">
+                  <span className="status-badge accepted">Znajomy</span>
                   <button
-                    className="btn-invite"
-                    onClick={() => {
-                      inviteFriend(person.id);
-                      addToast("Wysłano zaproszenie!", "success");
-                    }}
+                    className="btn-remove"
+                    onClick={() => handleRemove(person.id)}
+                    title="Usuń ze znajomych"
                   >
-                    Zaproś
+                    ❌
                   </button>
-                )}
+                </div>
               </div>
-            </div>
-          ))
-        ) : (
-          <p style={{ textAlign: "center", width: "100%", color: "#888" }}>
-            Nie znaleziono nikogo o takich danych.
-          </p>
-        )}
+            ))
+          ) : (
+            <p
+              style={{
+                textAlign: "center",
+                width: "100%",
+                color: "#888",
+                marginTop: "20px",
+              }}
+            >
+              Nie masz jeszcze żadnych znajomych. Zaproś kogoś!
+            </p>
+          )}
+        </div>
       </div>
     </div>
   );

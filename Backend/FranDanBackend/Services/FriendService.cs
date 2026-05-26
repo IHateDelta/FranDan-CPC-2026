@@ -35,7 +35,7 @@ namespace FranDanBackend.Services
            Friendship newFriendship=new Friendship(invitorUser,invitedUser);
            context.Friendships.Add(newFriendship);
            context.SaveChanges();
-           MailSender.sendFriendRequest(invitorUser, invitedUser);
+           if(invitedUser.emailNotifications) MailSender.sendFriendRequest(invitorUser, invitedUser);
        }
         public void acceptFriend(int invitedId, UserIdDTO dto)
         {

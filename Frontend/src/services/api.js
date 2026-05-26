@@ -34,18 +34,13 @@ export const api = {
     getFull: async () =>
       fetch(`${API_BASE_URL}/api/user/full`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers: getHeaders(), // Wykorzystujemy Twoją funkcję!
       }),
 
     update: async (data) =>
       fetch(`${API_BASE_URL}/api/user/edit`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers: getHeaders(),
         body: JSON.stringify(data),
       }),
     delete: async () =>
@@ -56,29 +51,26 @@ export const api = {
   },
 
   friends: {
-    invite: async (userId) =>
+    invite: async (usernameOrEmail) =>
       fetch(`${API_BASE_URL}/api/friend/invite`, {
         method: "POST",
         headers: getHeaders(),
-        body: JSON.stringify({ userId }),
+        body: JSON.stringify({ usernameOrEmail }),
       }),
-    accept: async (userId) =>
-      fetch(`${API_BASE_URL}/api/friend/accept`, {
+    accept: async (id) =>
+      fetch(`${API_BASE_URL}/api/friend/accept?request=${id}`, {
         method: "PATCH",
         headers: getHeaders(),
-        body: JSON.stringify({ userId }),
       }),
-    reject: async (userId) =>
-      fetch(`${API_BASE_URL}/api/friend/reject`, {
+    reject: async (id) =>
+      fetch(`${API_BASE_URL}/api/friend/reject?request=${id}`, {
         method: "PATCH",
         headers: getHeaders(),
-        body: JSON.stringify({ userId }),
       }),
-    delete: async (userId) =>
-      fetch(`${API_BASE_URL}/api/friend/delete`, {
+    delete: async (id) =>
+      fetch(`${API_BASE_URL}/api/friend/delete?request=${id}`, {
         method: "DELETE",
         headers: getHeaders(),
-        body: JSON.stringify({ userId }),
       }),
   },
 
@@ -89,12 +81,10 @@ export const api = {
         headers: getHeaders(),
         body: JSON.stringify(planData),
       }),
-    getFull: async () =>
-      fetch(`${API_BASE_URL}/api/plan/full`, {
+    getFull: async (planId) =>
+      fetch(`${API_BASE_URL}/api/plan/full?request=${planId}`, {
         method: "GET",
-        headers: {
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-        },
+        headers: getHeaders(),
       }),
     edit: async (planData) =>
       fetch(`${API_BASE_URL}/api/plan/edit`, {
@@ -116,9 +106,33 @@ export const api = {
         headers: getHeaders(),
         body: JSON.stringify(payload),
       }),
+
     remove: async (payload) =>
       fetch(`${API_BASE_URL}/api/participation/delete`, {
         method: "DELETE",
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+      }),
+
+    accept: async (
+      payload, // oczekuje np. { id: 5 }
+    ) =>
+      fetch(`${API_BASE_URL}/api/participation/accept`, {
+        method: "PATCH",
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+      }),
+
+    reject: async (payload) =>
+      fetch(`${API_BASE_URL}/api/participation/reject`, {
+        method: "PATCH",
+        headers: getHeaders(),
+        body: JSON.stringify(payload),
+      }),
+
+    setAdmin: async (payload) =>
+      fetch(`${API_BASE_URL}/api/participation/set-admin`, {
+        method: "PATCH",
         headers: getHeaders(),
         body: JSON.stringify(payload),
       }),

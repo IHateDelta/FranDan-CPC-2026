@@ -13,7 +13,6 @@ export const AuthProvider = ({ children }) => {
   const fetchUserData = async () => {
     try {
       const response = await api.user.getFull();
-
       if (response.ok) {
         const userData = await response.json();
         setUser(userData);
@@ -74,7 +73,14 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ user, token, loading, login, logout: handleLogout }}
+      value={{
+        user,
+        token,
+        loading,
+        login,
+        logout: handleLogout,
+        fetchUserData,
+      }}
     >
       {children}
     </AuthContext.Provider>

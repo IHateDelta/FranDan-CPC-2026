@@ -15,11 +15,12 @@ namespace FranDanBackend.Models
         public string username { get; set; }
         public MailAddress email { get; set; }
         public string passwordHash { get; set; }
+        [Column("email_notifications")]
         public bool emailNotifications { get; set; }
         public int verifierId { get; set; }
         [ForeignKey(nameof(verifierId))]
         public Verifier verifier { get; set; }
-        public string occupation {  get; set; }
+        public string occupation { get; set; }
         public DateOnly birthday { get; set; }
         public User() { }
 
@@ -80,11 +81,11 @@ namespace FranDanBackend.Models
         public UserProtectedDTO toProtectedDTO()
         {
             DateOnly today = DateOnly.FromDateTime(DateTime.Now);
-            DateOnly birthdayThisYear = new DateOnly(today.Year,birthday.Month,birthday.Day);
-            DateOnly birthdayNextYear = new DateOnly(today.Year+1,birthday.Month,birthday.Day);
-            int days_to_birthday = birthdayThisYear.DayNumber-today.DayNumber > 0 ? 
-                birthdayThisYear.DayNumber - today.DayNumber : 
-                birthdayNextYear.DayNumber - today.DayNumber ;
+            DateOnly birthdayThisYear = new DateOnly(today.Year, birthday.Month, birthday.Day);
+            DateOnly birthdayNextYear = new DateOnly(today.Year + 1, birthday.Month, birthday.Day);
+            int days_to_birthday = birthdayThisYear.DayNumber - today.DayNumber > 0 ?
+                birthdayThisYear.DayNumber - today.DayNumber :
+                birthdayNextYear.DayNumber - today.DayNumber;
             UserProtectedDTO dto = new UserProtectedDTO();
             dto.id = id;
             dto.username = username;
@@ -94,7 +95,7 @@ namespace FranDanBackend.Models
             dto.days_to_birthday = days_to_birthday;
             return dto;
         }
-        public PlanMemberDTO toPlanMemberDTO(bool accepted,bool admin)
+        public PlanMemberDTO toPlanMemberDTO(bool accepted, bool admin)
         {
             PlanMemberDTO dto = new PlanMemberDTO();
             dto.username = username;

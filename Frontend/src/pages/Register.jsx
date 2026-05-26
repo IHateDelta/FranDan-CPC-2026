@@ -10,6 +10,7 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [occupation, setOccupation] = useState("");
   const [birthday, setBirthday] = useState("");
+  const [emailNotifications, setEmailNotifications] = useState(true);
 
   const { addToast } = useContext(ToastContext);
   const navigate = useNavigate();
@@ -24,6 +25,7 @@ const Register = () => {
         password: password,
         occupation: occupation,
         birthday: birthday,
+        emailNotifications: emailNotifications, // Wysyłamy decyzję
       });
 
       if (response.ok) {
@@ -95,6 +97,36 @@ const Register = () => {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
+          </div>
+
+          <div
+            className="form-group"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              marginTop: "10px",
+              marginBottom: "15px",
+            }}
+          >
+            <input
+              type="checkbox"
+              id="regEmailNotif"
+              checked={emailNotifications}
+              onChange={(e) => setEmailNotifications(e.target.checked)}
+              style={{ width: "auto", margin: 0, cursor: "pointer" }}
+            />
+            <label
+              htmlFor="regEmailNotif"
+              style={{
+                margin: 0,
+                fontSize: "14px",
+                fontWeight: "normal",
+                cursor: "pointer",
+              }}
+            >
+              Zgadzam się na powiadomienia e-mail
+            </label>
           </div>
 
           <button type="submit" className="login-btn">

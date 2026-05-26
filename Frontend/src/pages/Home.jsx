@@ -1,78 +1,64 @@
 import { useContext } from "react";
 import { AuthContext } from "../context/AuthContext";
-import { FriendsContext } from "../context/FriendsContext";
-import { PlansContext } from "../context/PlansContext";
 import { Navigate, Link } from "react-router-dom";
 import "./Home.css";
 
 const Home = () => {
   const { token, user } = useContext(AuthContext);
-  const { friendStatuses } = useContext(FriendsContext);
-  const { plans, fetchPlans } = useContext(PlansContext);
 
   if (!token) {
     return <Navigate to="/login" replace />;
   }
 
-  const myBirthday = user?.username
-    ? localStorage.getItem(`birthday_${user.username}`)
-    : null;
+  if (!user) {
+    return (
+      <div
+        className="home-container"
+        style={{ textAlign: "center", paddingTop: "50px" }}
+      >
+        <div className="spinner"></div>
+        <p style={{ color: "#868e96", marginTop: "10px" }}>
+          Ładowanie kokpitu...
+        </p>
+      </div>
+    );
+  }
 
   const checkIsBirthday = (dateString) => {
     if (!dateString) return false;
-    const [, month, day] = dateString.split("-");
+    const datePart = dateString.includes("T")
+      ? dateString.split("T")[0]
+      : dateString;
+    const [, month, day] = datePart.split("-");
     const today = new Date();
     const currentMonth = String(today.getMonth() + 1).padStart(2, "0");
     const currentDay = String(today.getDate()).padStart(2, "0");
     return month === currentMonth && day === currentDay;
   };
 
-  const isBirthdayToday = checkIsBirthday(myBirthday);
+  const isBirthdayToday = checkIsBirthday(user.birthday);
 
-  const allBirthdays = plans
-    .filter((plan) => plan.category === "birthday")
-    .map((plan) => ({
-      id: plan.id,
-      name: plan.title,
-      date: plan.date,
-    }));
-
-  const friendsBirthdays = allBirthdays.filter(
-    (person) => friendStatuses[person.id] === "accepted",
-  );
-
-  const calculateDaysToBirthday = (targetDateString) => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const birthDate = new Date(targetDateString);
-
-    const nextBirthday = new Date(
-      today.getFullYear(),
-      birthDate.getMonth(),
-      birthDate.getDate(),
-    );
-
-    if (nextBirthday < today) {
-      nextBirthday.setFullYear(today.getFullYear() + 1);
-    }
-
-    const diffTime = nextBirthday - today;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    return diffDays;
-  };
-
-  const upcomingPlans = plans
-    .filter((plan) => new Date(plan.date) > new Date())
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
+  const myPlans = user.plans || [];
+  const upcomingPlans = myPlans
+    .filter((plan) => new Date(plan.startTime) > new Date())
+    .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
     .slice(0, 3);
+
+  const myFriends = user.friends || [];
+  const upcomingBirthdays = [...myFriends]
+    .filter(
+      (friend) =>
+        friend.days_to_birthday !== null &&
+        friend.days_to_birthday !== undefined,
+    )
+    .sort((a, b) => a.days_to_birthday - b.days_to_birthday)
+    .slice(0, 3); // Pokazujemy max 3 najbliższe
 
   return (
     <div className="home-container">
       {isBirthdayToday && (
         <div className="birthday-banner">
-          🎉 Wszystkiego najlepszego, {user?.username.split(" ")[0]}! Spełnienia
+          🎉 Wszystkiego najlepszego, {user.username.split(" ")[0]}! Spełnienia
           marzeń i świetnej zabawy! 🎁
         </div>
       )}
@@ -84,16 +70,21 @@ const Home = () => {
             <div key={plan.id} className="dashboard-card plan-card">
               <h3>{plan.title}</h3>
               <p className="date-text">
-                <strong>Kiedy:</strong> {plan.date}
+                <strong>Kiedy:</strong> {plan.startTime.replace("T", " ")}
               </p>
               <p className="category-text">
                 <strong>Kategoria:</strong> {plan.category}
               </p>
-              <div className="participants-text">
-                <strong>Z kim:</strong>{" "}
-                {plan.participants.length === 1 && plan.participants[0] === "Ja"
-                  ? "Tylko ja"
-                  : plan.participants.join(", ")}
+              <div
+                className="participants-text"
+                style={{ marginTop: "10px", fontSize: "14px" }}
+              >
+                <strong>Twoja rola:</strong>{" "}
+                {plan.creator
+                  ? "Twórca"
+                  : plan.admin
+                    ? "Administrator"
+                    : "Uczestnik"}
               </div>
             </div>
           ))}
@@ -110,28 +101,34 @@ const Home = () => {
       <h2 className="section-title" style={{ marginTop: "40px" }}>
         Nadchodzące Urodziny Znajomych 🎂
       </h2>
-      {friendsBirthdays.length > 0 ? (
+      {upcomingBirthdays.length > 0 ? (
         <div className="cards-grid">
-          {friendsBirthdays.map((person) => {
-            const daysLeft = calculateDaysToBirthday(person.date);
-            return (
-              <div key={person.id} className="dashboard-card birthday-card">
-                <h3>{person.name}</h3>
-                <p className="date-text">
-                  <strong>Data:</strong> {person.date}
-                </p>
-                <div className="countdown">
-                  Za <strong>{daysLeft}</strong> dni
-                </div>
+          {upcomingBirthdays.map((friend) => (
+            <div key={friend.id} className="dashboard-card birthday-card">
+              <h3>{friend.username}</h3>
+              <p className="date-text">
+                <strong>Data urodzin:</strong>{" "}
+                {friend.birthday
+                  ? friend.birthday.split("T")[0]
+                  : "Brak danych"}
+              </p>
+              <div className="countdown">
+                {friend.days_to_birthday === 0 ? (
+                  <strong>🎉 To dzisiaj!</strong>
+                ) : (
+                  <>
+                    Za <strong>{friend.days_to_birthday}</strong> dni
+                  </>
+                )}
               </div>
-            );
-          })}
+            </div>
+          ))}
         </div>
       ) : (
         <div className="empty-state">
-          <p>Brak znajomych na liście.</p>
+          <p>Brak nadchodzących urodzin w kalendarzu.</p>
           <Link to="/friends" className="empty-state-link">
-            Przejdź do zakładki Znajomi
+            Przejdź do znajomych
           </Link>
         </div>
       )}
