@@ -57,6 +57,26 @@ namespace FranDanBackend.Controllers
                 return BadRequest($"User account deletion error: {ex.Message}");
             }
         }
+        [HttpPut("edit")]
+        [Authorize]
+        public IActionResult edit(UserEditDTO request)
+        {
+            try
+            {
+                var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                {
+                    return BadRequest("Wrong token. No user with this id.");
+                }
+                int loggedInUserId = int.Parse(userIdClaim.Value);
+                service.edit(loggedInUserId,request);
+                return Ok("Your account edited succesfully!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"User account edition error: {ex.Message}");
+            }
+        }
     }
 
 }
