@@ -65,5 +65,14 @@ namespace FranDanBackend.Services
             context.Users.Remove(deleteUser);
             context.SaveChanges();
         }
+        public void edit(int userId, UserEditDTO dto)
+        {
+            User editUser = context.getUserById(userId);
+            editUser.username=dto.username;
+            editUser.emailNotifications=dto.emailNotifications;
+            editUser.occupation = dto.occupation;
+            try { editUser.birthday = DateOnly.Parse(dto.birthday); } catch (Exception) { throw new Exception("Date-exception"); }
+            context.SaveChanges();
+        }
     }
 }

@@ -67,7 +67,7 @@ namespace FranDanBackend.Services
             Participation participation = new Participation(invitedUser, plan, dto.admin);
             context.Participations.Add(participation);
             context.SaveChanges();
-            MailSender.sendPlanRequest(user, invitedUser, plan);
+            if (invitedUser.emailNotifications) MailSender.sendPlanRequest(user, invitedUser, plan);
         }
         public void removeParticipant(int userId, PlanActionDTO dto)
         {
