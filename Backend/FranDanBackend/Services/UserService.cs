@@ -74,9 +74,6 @@ namespace FranDanBackend.Services
             editUser.username = dto.username;
             editUser.emailNotifications = dto.emailNotifications;
             editUser.occupation = dto.occupation;
-            editUser.emailNotifications = dto.emailNotifications;
-            context.Entry(editUser).Property(u => u.emailNotifications).IsModified = true;
-
             try { editUser.birthday = DateOnly.Parse(dto.birthday); } catch (Exception) { throw new Exception("Date-exception"); }
             context.SaveChanges();
         }

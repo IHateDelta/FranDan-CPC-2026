@@ -1,4 +1,4 @@
-﻿namespace FranDanBackend.DTO
+namespace FranDanBackend.DTO
 {
     public class UserEditDTO
     {
