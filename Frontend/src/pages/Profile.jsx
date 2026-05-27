@@ -30,12 +30,8 @@ const Profile = () => {
           setMyBirthday(user.birthday);
         }
       }
-      const notificationsValue = user.emailNotifications;
-      setEmailNotifications(
-        notificationsValue === true ||
-          notificationsValue === "true" ||
-          notificationsValue === 1,
-      );
+
+      setEmailNotifications(!!user.emailNotifications);
     }
   }, [user]);
 
@@ -52,7 +48,7 @@ const Profile = () => {
       const response = await api.user.update(payload);
       if (response.ok) {
         addToast("Profil zaktualizowany!", "success");
-        fetchUserData();
+        await fetchUserData();
       } else {
         addToast("Nie udało się zapisać zmian.", "error");
       }
@@ -64,9 +60,7 @@ const Profile = () => {
 
   const handleDeleteAccount = async () => {
     if (
-      window.confirm(
-        "UWAGA! Czy na pewno chcesz TRWALE usunąć swoje konto? Tej operacji nie można cofnąć!",
-      )
+      window.confirm("UWAGA! Czy na pewno chcesz TRWALE usunąć swoje konto?")
     ) {
       try {
         const response = await api.user.delete();

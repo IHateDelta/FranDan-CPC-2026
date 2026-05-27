@@ -26,7 +26,7 @@ const Friends = () => {
       if (response.ok) {
         addToast("Wysłano zaproszenie do znajomych!", "success");
         setInviteValue("");
-        await fetchUserData(); // Odświeżamy dane
+        await fetchUserData();
       } else {
         addToast("Nie udało się wysłać zaproszenia. Sprawdź login.", "error");
       }
@@ -91,14 +91,13 @@ const Friends = () => {
     <div className="friends-container">
       <h2>Znajomi</h2>
 
-      <div className="search-box" style={{ marginBottom: "30px" }}>
+      <div className="search-box">
         <form onSubmit={handleInvite} style={{ display: "flex", gap: "10px" }}>
           <input
             type="text"
             placeholder="Wpisz login lub e-mail znajomego..."
             value={inviteValue}
             onChange={(e) => setInviteValue(e.target.value)}
-            style={{ flex: 1 }}
           />
           <button type="submit" className="btn-invite">
             Zaproś
@@ -129,14 +128,14 @@ const Friends = () => {
                   <button
                     className="btn-accept"
                     onClick={() => handleAccept(person.id)}
-                    title="Akceptuj zaproszenie"
+                    title="Akceptuj"
                   >
                     ✔️
                   </button>
                   <button
                     className="btn-remove"
                     onClick={() => handleReject(person.id)}
-                    title="Odrzuć zaproszenie"
+                    title="Odrzuć"
                   >
                     ❌
                   </button>
@@ -151,9 +150,10 @@ const Friends = () => {
         <h3 style={{ borderBottom: "2px solid #eee", paddingBottom: "10px" }}>
           Moi Znajomi ({friendsList.length})
         </h3>
-        <div className="friends-grid">
-          {friendsList.length > 0 ? (
-            friendsList.map((person) => (
+
+        {friendsList.length > 0 ? (
+          <div className="friends-grid">
+            {friendsList.map((person) => (
               <div key={person.id} className="friend-card">
                 <div className="friend-info">
                   <div className="friend-avatar">
@@ -166,32 +166,24 @@ const Friends = () => {
                     <p>{person.occupation || "Brak roli"}</p>
                   </div>
                 </div>
-
                 <div className="friend-actions">
                   <span className="status-badge accepted">Znajomy</span>
                   <button
                     className="btn-remove"
                     onClick={() => handleRemove(person.id)}
-                    title="Usuń ze znajomych"
+                    title="Usuń"
                   >
                     ❌
                   </button>
                 </div>
               </div>
-            ))
-          ) : (
-            <p
-              style={{
-                textAlign: "center",
-                width: "100%",
-                color: "#888",
-                marginTop: "20px",
-              }}
-            >
-              Nie masz jeszcze żadnych znajomych. Zaproś kogoś!
-            </p>
-          )}
-        </div>
+            ))}
+          </div>
+        ) : (
+          <p className="no-friends-message">
+            Nie masz jeszcze żadnych znajomych. Zaproś kogoś!
+          </p>
+        )}
       </div>
     </div>
   );

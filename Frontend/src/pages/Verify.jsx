@@ -50,7 +50,7 @@ const Verify = () => {
             color: "#666",
           }}
         >
-          Wpisz kod weryfikacyjny, który otrzymałeś (sprawdź konsolę backendu).
+          Wpisz kod weryfikacyjny, który otrzymałeś.
         </p>
         <form onSubmit={handleSubmit} className="login-form">
           <div className="form-group">

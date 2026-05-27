@@ -88,16 +88,6 @@
   color: #1c7ed6;
 }
 
-.status-badge.pending {
-  background-color: #f1f3f5;
-  color: #868e96;
-}
-
-.status-badge.rejected {
-  background-color: #ffe3e3;
-  color: #c92a2a;
-}
-
 .btn-invite {
   background-color: #d3f9d8;
   color: #2b8a3e;
@@ -149,4 +139,14 @@
 
 .btn-accept:hover {
   background-color: #b2f2bb;
+}
+
+.no-friends-message {
+  text-align: center;
+  width: 100%;
+  color: #888;
+  margin-top: 20px;
+  padding: 20px;
+  border: 2px dashed #eee;
+  border-radius: 12px;
 }

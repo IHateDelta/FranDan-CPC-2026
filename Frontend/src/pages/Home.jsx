@@ -40,8 +40,17 @@ const Home = () => {
 
   const myPlans = user.plans || [];
   const upcomingPlans = myPlans
-    .filter((plan) => new Date(plan.startTime) > new Date())
-    .sort((a, b) => new Date(a.startTime) - new Date(b.startTime))
+    .filter((plan) => {
+      const validDateString = plan.startTime
+        .replace(" ", "T")
+        .replace(/\./g, ":");
+      return new Date(validDateString) > new Date();
+    })
+    .sort((a, b) => {
+      const dateA = new Date(a.startTime.replace(" ", "T").replace(/\./g, ":"));
+      const dateB = new Date(b.startTime.replace(" ", "T").replace(/\./g, ":"));
+      return dateA - dateB;
+    })
     .slice(0, 3);
 
   const myFriends = user.friends || [];
@@ -52,8 +61,7 @@ const Home = () => {
         friend.days_to_birthday !== undefined,
     )
     .sort((a, b) => a.days_to_birthday - b.days_to_birthday)
-    .slice(0, 3); // Pokazujemy max 3 najbliższe
-
+    .slice(0, 3);
   return (
     <div className="home-container">
       {isBirthdayToday && (
