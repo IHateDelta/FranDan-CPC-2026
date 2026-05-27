@@ -9,7 +9,7 @@ namespace FranDanBackend
     {
         public string email { get; set; }
         public string password { get; set; }
-        public LoginInfo(){}
+        public LoginInfo() { }
         public static LoginInfo getFromConfig(string configPath)
         {
             string json;
@@ -24,8 +24,9 @@ namespace FranDanBackend
             }
             return loginInfo;
         }
-        public MailAddress getEmail() {
-            return new MailAddress(email,"FranDan CPC 2026");
+        public MailAddress getEmail()
+        {
+            return new MailAddress(email, "FranDan CPC 2026");
         }
 
     }
@@ -67,9 +68,9 @@ namespace FranDanBackend
             message.From = sendingMail.getEmail();
             message.To.Add(toUser.email);
             message.Subject = $"You have new friend invitation from {fromUser.username}.";
-            message.Body = $"Hello {toUser},\n" +
+            message.Body = $"Hello {toUser.username},\n" +
                 $"{fromUser.username} send you a friend invitation.\n" +
-                "Log in to accept or reject it.\n"+
+                "Log in to accept or reject it.\n" +
                 "This email was generated automatically.\n" +
                 " Don't answear.\n" +
                 "FranDan team\n";
